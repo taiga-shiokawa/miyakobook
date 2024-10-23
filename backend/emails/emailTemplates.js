@@ -5,16 +5,16 @@ export function createWelcomeEmailTemplate(name, profileUrl) {
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>しまジョブへようこそ</title>
+    <title>Miyakobookへようこそ</title>
   </head>
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background: linear-gradient(to right, #0077B5, #00A0DC); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
       // 画像をおく
-      <h1 style="color: white; margin: 0; font-size: 28px;">しまジョブへようこそ！</h1>
+      <h1 style="color: white; margin: 0; font-size: 28px;">Miyakobookへようこそ！</h1>
     </div>
     <div style="background-color: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
       <p style="font-size: 18px; color: #0077B5;"><strong>${name}様</strong></p>
-      <p>会員登録、誠にありがとうございます！しまジョブは、あなたのキャリアにおける成長と学びをサポートするプラットフォームです。</p>
+      <p>会員登録、誠にありがとうございます！Miyakobookは、あなたのキャリアにおける成長と学びをサポートするプラットフォームです。</p>
       <div style="background-color: #f3f6f8; padding: 20px; border-radius: 8px; margin: 20px 0;">
         <p style="font-size: 16px; margin: 0;"><strong>始めるためのステップ：</strong></p>
         <ul style="padding-left: 20px;">
@@ -28,7 +28,7 @@ export function createWelcomeEmailTemplate(name, profileUrl) {
         <a href="${profileUrl}" style="background-color: #0077B5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; transition: background-color 0.3s;">プロフィールを完成させる</a>
       </div>
       <p>ご不明な点やお困りのことがございましたら、サポートチームが常時対応させていただきます。</p>
-      <p>よろしくお願いいたします。<br>しまジョブチーム</p>
+      <p>よろしくお願いいたします。<br>Miyakobookチーム</p>
     </div>
   </body>
   </html>
@@ -50,7 +50,7 @@ export const createConnectionAcceptedEmailTemplate = (senderName, recipientName,
   </div>
   <div style="background-color: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
     <p style="font-size: 18px; color: #0077B5;"><strong>${senderName}様</strong></p>
-    <p>朗報です！<strong>${recipientName}</strong>さんがUしまジョブでのコネクションリクエストを承認しました。</p>
+    <p>朗報です！<strong>${recipientName}</strong>さんがMiyakobookでのコネクションリクエストを承認しました。</p>
     <div style="background-color: #f3f6f8; padding: 20px; border-radius: 8px; margin: 20px 0;">
       <p style="font-size: 16px; margin: 0;"><strong>次のステップ：</strong></p>
       <ul style="padding-left: 20px;">
@@ -63,7 +63,7 @@ export const createConnectionAcceptedEmailTemplate = (senderName, recipientName,
       <a href="${profileUrl}" style="background-color: #0077B5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; transition: background-color 0.3s;">${recipientName}さんのプロフィールを見る</a>
     </div>
     <p>プロフェッショナルネットワークを広げることで、新たな機会が生まれます。つながり続けましょう！</p>
-    <p>よろしくお願いいたします。<br>しまジョブチーム</p>
+    <p>よろしくお願いいたします。<br>Miyakobookチーム</p>
   </div>
 </body>
 </html>
@@ -92,7 +92,7 @@ export const createCommentNotificationEmailTemplate = (recipientName, commenterN
       <a href=${postUrl} style="background-color: #0077B5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; transition: background-color 0.3s;">コメントを見る</a>
     </div>
     <p>コメントに返信し、ディスカッションを活発にすることで、企業や友人との関係を深めましょう。</p>
-    <p>よろしくお願いいたします。<br>しまジョブチーム</p>
+    <p>よろしくお願いいたします。<br>Miyakobookチーム</p>
   </div>
 </body>
 </html>

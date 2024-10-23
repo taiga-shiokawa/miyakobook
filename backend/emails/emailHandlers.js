@@ -1,24 +1,49 @@
-import { mailtrapClient, sender } from "../lib/mailtrap.js";
-import {
-  createCommentNotificationEmailTemplate,
-  createConnectionAcceptedEmailTemplate,
-  createWelcomeEmailTemplate,
-} from "./emailTemplates.js";
+import { Resend } from 'resend';
+import dotenv from 'dotenv';
+import { createWelcomeEmailTemplate, createCommentNotificationEmailTemplate, createConnectionAcceptedEmailTemplate } from './emailTemplates.js';
+
+
+dotenv.config();
+
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const IS_TEST = process.env.NODE_ENV === 'test' || RESEND_API_KEY.startsWith('re_test_');
+
+export const resend = new Resend(RESEND_API_KEY);
+
+// テスト環境用の送信元アドレス
+const TEST_SENDER = {
+  email: 'onboarding@resend.dev',
+  name: 'Miyakobook Test'
+};
+
+// 本番環境用の送信元アドレス
+const PROD_SENDER = {
+  email: process.env.EMAIL_FROM,
+  name: process.env.EMAIL_FROM_NAME
+};
+
+// 環境に応じて送信元を切り替え
+export const sender = IS_TEST ? TEST_SENDER : PROD_SENDER;
+
+// テスト環境用のメールアドレスに変換する関数
+const getTestEmailAddress = (originalEmail) => {
+  return IS_TEST ? 'delivered@resend.dev' : originalEmail;
+};
 
 export const sendWelcomeEmail = async (email, name, profileUrl) => {
-  const recipients = [{ email }];
-
   try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: recipients,
-      subject: "しまジョブへようこそ！",
+    const response = await resend.emails.send({
+      from: `${sender.name} <${sender.email}>`,
+      to: [getTestEmailAddress(email)],
+      subject: "Miyakobookへようこそ！",
       html: createWelcomeEmailTemplate(name, profileUrl),
-      category: "Welcome",
+      tags: [{ name: 'category', value: 'Welcome' }]
     });
 
-    console.log("Welcome email sent successfully", response);
+    console.log(`Welcome email sent successfully ${IS_TEST ? '(TEST MODE)' : ''}`);
+    return response;
   } catch (error) {
+    console.error("Failed to send welcome email:", error);
     throw error;
   }
 };
@@ -30,12 +55,10 @@ export const sendCommentNotificationEmail = async (
   postUrl,
   commentContent
 ) => {
-  const recipient = [{ email: recipientEmail }];
-
   try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: recipient,
+    const response = await resend.emails.send({
+      from: `${sender.name} <${sender.email}>`,
+      to: [getTestEmailAddress(recipientEmail)],
       subject: "あなたの投稿にコメントがつきました",
       html: createCommentNotificationEmailTemplate(
         recipientName,
@@ -43,24 +66,40 @@ export const sendCommentNotificationEmail = async (
         postUrl,
         commentContent
       ),
-      category: "comment_notification",
+      tags: [{ name: 'category', value: 'comment_notification' }]
     });
-    console.log("コメント通知をメールに送信しました: ", response);
+
+    console.log(`コメント通知をメールに送信しました ${IS_TEST ? '(TEST MODE)' : ''}`);
+    return response;
   } catch (error) {
+    console.error("Failed to send comment notification email:", error);
     throw error;
   }
 };
 
-export const sendConnectionAcceptedEmail = async (senderEmail, senderName, recipientName, profileUrl) => {
-	const recipient = [{ email: senderEmail }];
+export const sendConnectionAcceptedEmail = async (
+  senderEmail,
+  senderName,
+  recipientName,
+  profileUrl
+) => {
+  try {
+    const response = await resend.emails.send({
+      from: `${sender.name} <${sender.email}>`,
+      to: [getTestEmailAddress(senderEmail)],
+      subject: `${recipientName} があなたのコネクションリクエストを受け入れました`,
+      html: createConnectionAcceptedEmailTemplate(
+        senderName,
+        recipientName,
+        profileUrl
+      ),
+      tags: [{ name: 'category', value: 'connection_accepted' }]
+    });
 
-	try {
-		const response = await mailtrapClient.send({
-			from: sender,
-			to: recipient,
-			subject: `${recipientName} があなたのコネクションリクエストを受け入れました`,
-			html: createConnectionAcceptedEmailTemplate(senderName, recipientName, profileUrl),
-			category: "connection_accepted",
-		});
-	} catch (error) {}
+    console.log(`コネクション承認メールを送信しました ${IS_TEST ? '(TEST MODE)' : ''}`);
+    return response;
+  } catch (error) {
+    console.error("Failed to send connection accepted email:", error);
+    throw error;
+  }
 };
