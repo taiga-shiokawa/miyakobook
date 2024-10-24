@@ -209,7 +209,7 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
 							type='text'
 							value={editedData.headline ?? userData.headline}
 							onChange={(e) => setEditedData({ ...editedData, headline: e.target.value })}
-              placeholder="例: しまジョブ広報"
+              placeholder="ひとこと"
 							className='text-gray-600 border border-gray-300 rounded-md text-center w-full'
 						/>
 					) : (
