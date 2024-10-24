@@ -7,6 +7,9 @@
     "dev": "nodemon backend/server.js",
     "start": "node backend/server.js",
     "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
+    "clean": "rm -rf frontend/dist",
+    "build:fresh": "npm run clean && npm run build",
+    "dev:clean": "npm run clean && npm run build && npm run dev",
     "test:load": "artillery run tests/load/load-test.yml",
     "test:load:report": "artillery run tests/load/load-test.yml -o report.json && artillery report report.json"
   },

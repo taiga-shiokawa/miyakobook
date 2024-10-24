@@ -43,9 +43,14 @@ app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 
 if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "/frontend/dist")));
+	app.use(express.static(path.join(__dirname, "/frontend/dist"), {
+    etag: false,
+    maxAge: 0,
+    lastModified: false
+  }));
 
 	app.get("*", (req, res) => {
+    res.set('Cache-Control', 'no-store');
 		res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
 	});
 }
