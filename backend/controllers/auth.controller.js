@@ -90,12 +90,17 @@ export const login = async (req, res) => {
     // ユーザーの存在確認
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(401).json({ message: "ユーザー名またはパスワードに誤りがあります。"});
+      return res.status(401).json({ 
+        message: "ユーザー名またはパスワードに誤りがあります。"
+      });
     }
 
+    // パスワードの照合
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "ユーザー名またはパスワードに誤りがあります。"});
+      return res.status(401).json({ 
+        message: "ユーザー名またはパスワードに誤りがあります。"
+      });
     }
 
     // トークンを作成して送信
@@ -110,15 +115,15 @@ export const login = async (req, res) => {
     authCache.set(username, token);
 
     res.cookie("jwt-business-sns-token", token, {
-      httpOnly: true, // XSS攻撃対策
+      httpOnly: true,
       maxAge: 3 * 24 * 60 * 60 * 1000,
-      sameSite: "strict", // CSRF対策
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
 
     res.json({ message: "ログインに成功しました。" });
   } catch (error) {
-    console.error("ログインに失敗しました。", error);
+    console.error("ログインに失敗しました。", error);
     res.status(500).json({ message: "サーバーエラーの可能性あり。"});
   }
 };

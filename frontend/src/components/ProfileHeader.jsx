@@ -223,7 +223,7 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
                   value={editedData.name ?? userData.name}
                   onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
                   className='text-lg border border-gray-300 rounded-md text-center w-full'
-                  placeholder="表示名"
+                  placeholder="ユーザー名"
                 />
               </div>
               <div>
@@ -233,7 +233,7 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
                   value={editedData.username ?? userData.username}
                   onChange={(e) => setEditedData({ ...editedData, username: e.target.value })}
                   className='text-xl font-bold border border-gray-300 rounded-md text-center w-full'
-                  placeholder="username"
+                  placeholder="ニックネーム"
                 />
               </div>
             </div>
