@@ -43,26 +43,26 @@ export const getFeedPosts = async (req, res) => {
   }
 };
 
+// 自分の投稿を取得
 export const getMyPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 10; // 1ページあたりの投稿数
+    const limit = 10;
     const skip = (page - 1) * limit;
 
-    // 総投稿数を取得
+    // ログインユーザーの投稿のみを取得
     const total = await Post.countDocuments({ author: req.user._id });
 
-    // 投稿を取得
     const posts = await Post.find({ author: req.user._id })
       .populate("author", "name username profilePicture headline")
       .populate("comments.user", "name profilePicture")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .lean(); // パフォーマンス向上のため
+      .lean();
 
-    // ページネーション情報を含めて返す
     res.status(200).json({
+      success: true,
       posts,
       pagination: {
         current: page,
@@ -72,9 +72,61 @@ export const getMyPosts = async (req, res) => {
     });
   } catch (error) {
     console.error("投稿の取得に失敗しました: ", error);
-    res.status(500).json({ message: "サーバーエラーの可能性あり。" });
+    res.status(500).json({
+      success: false,
+      message: "サーバーエラーの可能性あり。",
+      posts: [],
+      pagination: {
+        current: 1,
+        pages: 0,
+        total: 0
+      }
+    });
   }
-}
+};
+
+// 特定のユーザーの投稿を取得（新規追加）
+export const getUserPosts = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    // 指定されたユーザーの投稿のみを取得
+    const total = await Post.countDocuments({ author: userId });
+
+    const posts = await Post.find({ author: userId })
+      .populate("author", "name username profilePicture headline")
+      .populate("comments.user", "name profilePicture")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      posts,
+      pagination: {
+        current: page,
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (error) {
+    console.error("投稿の取得に失敗しました: ", error);
+    res.status(500).json({
+      success: false,
+      message: "サーバーエラーの可能性あり。",
+      posts: [],
+      pagination: {
+        current: 1,
+        pages: 0,
+        total: 0
+      }
+    });
+  }
+};
 
 export const createPost = async (req, res) => {
   try {

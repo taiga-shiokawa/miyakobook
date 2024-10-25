@@ -1,29 +1,27 @@
+// MyPostSection.jsx
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { axiosInstance } from "../lib/axios";
-import Post from "./Post";
 import { Loader } from "lucide-react";
+import UserPost from "./UserPost";
 
-const MyPostSection = () => {
-  // 自分の投稿を取得（無限スクロール対応）
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    error
-  } = useInfiniteQuery({
-    queryKey: ["myPosts"],
+const MyPostSection = ({ userId, isOwnProfile }) => {
+  // ユーザーの投稿を取得（無限スクロール対応）
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useInfiniteQuery({
+    queryKey: ["userPosts", userId],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await axiosInstance.get(`/posts/my-posts?page=${pageParam}`);
-      console.log('API Response for page', pageParam, ':', response.data);
+      const endpoint = isOwnProfile ? 
+        `/posts/my-posts?page=${pageParam}` : 
+        `/posts/user-posts/${userId}?page=${pageParam}`;
+      
+      const response = await axiosInstance.get(endpoint);
       return response.data;
     },
     getNextPageParam: (lastPage) => {
-      if (!lastPage) return undefined;
-      // 次のページがあるか確認
+      if (!lastPage?.pagination?.current || !lastPage?.pagination?.pages) {
+        return undefined;
+      }
       return lastPage.pagination.current < lastPage.pagination.pages
-        ? lastPage.pagination.current + 1
+        ? lastPage.pagination.current + 1 
         : undefined;
     }
   });
@@ -51,15 +49,22 @@ const MyPostSection = () => {
   }
 
   // すべてのページの投稿を結合
-  const allPosts = data?.pages.flatMap(page => page.posts) || [];
+  const allPosts = data?.pages?.reduce((acc, page) => {
+    if (page?.posts && Array.isArray(page.posts)) {
+      return [...acc, ...page.posts];
+    }
+    return acc;
+  }, []) || [];
 
   // 投稿がない場合の表示
   if (allPosts.length === 0) {
     return (
       <div className='bg-white shadow rounded-lg p-6'>
-        <h2 className='text-xl font-semibold mb-4'>過去の投稿</h2>
+        <h2 className='text-xl font-semibold mb-4'>
+          {isOwnProfile ? '過去の投稿' : 'ユーザーの投稿'}
+        </h2>
         <div className="text-center text-gray-500">
-          まだ投稿がありません
+          {isOwnProfile ? 'まだ投稿がありません' : 'このユーザーの投稿はありません'}
         </div>
       </div>
     );
@@ -67,11 +72,12 @@ const MyPostSection = () => {
 
   return (
     <div className='bg-white shadow rounded-lg p-6'>
-      <h2 className='text-xl font-semibold mb-4'>過去の投稿</h2>
+      <h2 className='text-xl font-semibold mb-4'>
+        {isOwnProfile ? '過去の投稿' : 'ユーザーの投稿'}
+      </h2>
       <div className='space-y-4'>
-        {/* 投稿一覧 */}
         {allPosts.map((post) => (
-          <Post key={post._id} post={post} />
+          <UserPost key={post._id} post={post} />
         ))}
 
         {/* さらに読み込むボタン */}

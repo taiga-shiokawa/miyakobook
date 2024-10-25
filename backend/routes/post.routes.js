@@ -1,6 +1,6 @@
 import express from 'express';
 import { protectRoute } from '../middleware/auth.middleware.js';
-import { getFeedPosts, createPost, deletePost, getPostById, createComment, likePost, getMyPosts } from '../controllers/post.controller.js';
+import { getFeedPosts, createPost, deletePost, getPostById, createComment, likePost, getMyPosts, getUserPosts } from '../controllers/post.controller.js';
 
 const router = express.Router();
 
@@ -11,7 +11,8 @@ router.get("/", protectRoute, getFeedPosts);
 router.post("/create", protectRoute, createPost);
 
 // 自分の投稿
-router.get("/my-posts", protectRoute, getMyPosts);
+router.get("/my-posts", protectRoute, getMyPosts); // /:userIdを削除
+router.get("/user-posts/:userId", protectRoute, getUserPosts); // 他のユーザーの投稿用に新しいルートを追加
 
 // 投稿削除
 router.delete("/delete/:id", protectRoute, deletePost);

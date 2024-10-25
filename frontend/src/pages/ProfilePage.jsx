@@ -1,7 +1,7 @@
+// ProfilePage.jsx
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../lib/axios";
-
 import ProfileHeader from "../components/ProfileHeader";
 import AboutSection from "../components/AboutSection";
 import ExperienceSection from "../components/ExperienceSection";
@@ -49,8 +49,12 @@ const ProfilePage = () => {
 			<ExperienceSection userData={userData} isOwnProfile={isOwnProfile} onSave={handleSave} />
 			<EducationSection userData={userData} isOwnProfile={isOwnProfile} onSave={handleSave} />
 			<SkillsSection userData={userData} isOwnProfile={isOwnProfile} onSave={handleSave} />
-			<MyPostSection />
+			<MyPostSection 
+				userId={userData._id} 
+				isOwnProfile={isOwnProfile} 
+			/>
 		</div>
 	);
 };
+
 export default ProfilePage;
