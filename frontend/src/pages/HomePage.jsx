@@ -66,6 +66,15 @@ const HomePage = () => {
   console.log("Posts Data:", postsData);
   console.log("Posts Loading:", isLoadingPosts);
   console.log("Posts Error:", postsError);
+  console.log("Recommended Users Data:", recommendedUsers);
+  // フィルタリング後にログを出力
+  // console.log("Recommended User _id:", recommendedUsers?.filter(Boolean)?.map((user) => user._id));
+
+  recommendedUsers?.filter(Boolean).map((user) => (
+    user?._id && <RecommendedUser key={user._id} user={user} />
+  ));
+  
+  
 
   // 全体のローディング表示
   if (isLoadingPosts && !postsData) {
@@ -119,9 +128,9 @@ const HomePage = () => {
               <p className="text-red-500 text-sm">
                 ユーザーの読み込みに失敗しました
               </p>
-            ) : recommendedUsers?.length > 0 ? (
-              recommendedUsers.map((user) => (
-                <RecommendedUser key={user._id} user={user} />
+            ) : recommendedUsers?.filter(Boolean).length > 0 ? (
+              recommendedUsers?.filter(Boolean).map((user) => (
+                user?._id && <RecommendedUser key={user._id} user={user} />
               ))
             ) : (
               <p className="text-gray-500 text-sm">
@@ -137,8 +146,10 @@ const HomePage = () => {
   // すべてのページの投稿を結合
   const allPosts =
     postsData?.pages.flatMap((page) =>
-      Array.isArray(page) ? page : page.posts || []
+      Array.isArray(page) ? page.filter(Boolean) : page.posts?.filter(Boolean) || []
     ) || [];
+
+    console.log("allPosts:", allPosts);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -155,7 +166,7 @@ const HomePage = () => {
           <>
             {allPosts.length > 0 ? (
               <div className="space-y-4">
-                {allPosts.map((post) => (
+                {allPosts?.map((post) => (
                   <Post key={post._id} post={post} />
                 ))}
 
@@ -203,45 +214,45 @@ const HomePage = () => {
       </div>
 
       <div className="col-span-1 lg:col-span-1 hidden lg:block">
-      <div className="bg-secondary rounded-lg shadow p-5">
-        <h2 className="font-semibold mb-4">知り合いかも</h2>
-        {isLoadingUsers ? (
-          <div className="flex justify-center min-h-[200px] items-center">
-            <Loader className="animate-spin" size={20} />
-          </div>
-        ) : recommendedError ? (
-          <div className="min-h-[200px] flex items-center justify-center">
-            <p className="text-red-500 text-sm">
-              ユーザーの読み込みに失敗しました
-            </p>
-          </div>
-        ) : recommendedUsers?.length > 0 ? (
-          <div className="min-h-[200px] flex flex-col justify-between">
-            <div>
-              {recommendedUsers.map((user) => (
-                <RecommendedUser key={user._id} user={user} />
-              ))}
+        <div className="bg-secondary rounded-lg shadow p-5">
+          <h2 className="font-semibold mb-4">知り合いかも</h2>
+          {isLoadingUsers ? (
+            <div className="flex justify-center min-h-[200px] items-center">
+              <Loader className="animate-spin" size={20} />
             </div>
-            {recommendedUsers.length >= 3 && (
-              <div className="mt-4">
-                <Link
-                  to="/network"
-                  className="text-[#5fced8] hover:text-[#4db9c3] text-sm"
-                >
-                  すべてのユーザーを見る
-                </Link>
+          ) : recommendedError ? (
+            <div className="min-h-[200px] flex items-center justify-center">
+              <p className="text-red-500 text-sm">
+                ユーザーの読み込みに失敗しました
+              </p>
+            </div>
+          ) : recommendedUsers?.length > 0 ? (
+            <div className="min-h-[200px] flex flex-col justify-between">
+              <div>
+                {recommendedUsers?.map((user) => (
+                  <RecommendedUser key={user._id} user={user} />
+                ))}
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="min-h-[200px] flex items-center justify-center">
-            <p className="text-gray-500 text-sm">
-              現在おすすめのユーザーはいません。
-            </p>
-          </div>
-        )}
+              {recommendedUsers.length >= 3 && (
+                <div className="mt-4">
+                  <Link
+                    to="/network"
+                    className="text-[#5fced8] hover:text-[#4db9c3] text-sm"
+                  >
+                    ユーザーを検索する
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="min-h-[200px] flex items-center justify-center">
+              <p className="text-gray-500 text-sm">
+                現在おすすめのユーザーはいません。
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
     </div>
   );
 };
