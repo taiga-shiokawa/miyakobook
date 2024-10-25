@@ -112,7 +112,7 @@ const Navbar = () => {
                     type="text" 
                     id="simple-search" 
                     className="border text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
-                    placeholder="検索" 
+                    placeholder="投稿を検索..." 
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                   />
