@@ -6,10 +6,10 @@ function UserCard({ user }) { // isConnectionを入れる
 			<Link to={`/profile/${user.username}`} className='flex flex-col items-center'>
 				<img
 					src={user.profilePicture || "/avatar.png"}
-					alt={user.name}
+					alt={user.username}
 					className='w-24 h-24 rounded-full object-cover mb-4'
 				/>
-				<h3 className='font-semibold text-lg text-center'>{user.name}</h3>
+				<h3 className='font-semibold text-lg text-center'>{user.username}</h3>
 			</Link>
 			<p className='text-gray-600 text-center'>{user.headline}</p>
 			<p className='text-sm text-gray-500 mt-2'>コネクション {user.connections?.length}</p>

@@ -14,10 +14,10 @@ export default function Sidebar({ user }) {
 				<Link to={`/profile/${user.username}`}>
 					<img
 						src={user.profilePicture || "/avatar.png"}
-						alt={user.name}
+						alt={user.username}
 						className='w-20 h-20 rounded-full mx-auto mt-[-40px]'
 					/>
-					<h2 className='text-xl font-semibold mt-2'>{user.name}</h2>
+					<h2 className='text-xl font-semibold mt-2'>{user.username}</h2>
 				</Link>
 				<p className='text-info'>{user.headline}</p>
 				<p className='text-info text-xs'>コネクション {user.connections.length}</p>

@@ -4,11 +4,13 @@ import { axiosInstance } from "../lib/axios";
 import { toast } from "react-hot-toast";
 
 import { Camera, Clock, MapPin, UserCheck, UserPlus, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedData, setEditedData] = useState({});
 	const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
 	const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
@@ -143,9 +145,28 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
 		}
 	};
 
-	const handleSave = () => {
-		onSave(editedData);
-		setIsEditing(false);
+	const handleSave = async () => {
+    // usernameが変更された場合の特別な処理
+    if (editedData.username && editedData.username !== userData.username) {
+      // 一旦ユーザーに確認を取る
+      const confirmed = window.confirm(
+        "ニックネームを変更します。よろしいですか？"
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    await onSave(editedData);
+    setIsEditing(false);
+
+    // username変更が成功した場合、新しいプロフィールURLに遷移
+    if (editedData.username && editedData.username !== userData.username) {
+      navigate(`/profile/${editedData.username}`);
+      // authUserも更新
+      queryClient.invalidateQueries(["authUser"]);
+    }
 	};
 
 	return (
@@ -194,22 +215,43 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
 
 				<div className='text-center mb-4'>
 					{isEditing ? (
-						<input
-							type='text'
-							value={editedData.name ?? userData.name}
-							onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
-							className='text-2xl font-bold mb-2 border border-gray-300 rounded-md text-center w-full'
-						/>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">@</label>
+                <input
+                  type='text'
+                  value={editedData.name ?? userData.name}
+                  onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
+                  className='text-lg border border-gray-300 rounded-md text-center w-full'
+                  placeholder="表示名"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">ニックネーム</label>
+                <input
+                  type='text'
+                  value={editedData.username ?? userData.username}
+                  onChange={(e) => setEditedData({ ...editedData, username: e.target.value })}
+                  className='text-xl font-bold border border-gray-300 rounded-md text-center w-full'
+                  placeholder="username"
+                />
+              </div>
+            </div>
 					) : (
-						<h1 className='text-2xl font-bold mb-2'>{userData.name}</h1>
+            <div className="mb-4">
+              <div className="text-lg text-gray-800">@{userData.name}</div>
+              <h1 className='text-2xl font-bold mb-1'>{userData.username}</h1>
+            </div>
 					)}
+
+          
 
 					{isEditing ? (
 						<input
 							type='text'
 							value={editedData.headline ?? userData.headline}
 							onChange={(e) => setEditedData({ ...editedData, headline: e.target.value })}
-              placeholder="ひとこと"
+              placeholder="例: ひとこと"
 							className='text-gray-600 border border-gray-300 rounded-md text-center w-full'
 						/>
 					) : (
