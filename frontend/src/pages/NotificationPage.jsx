@@ -8,7 +8,6 @@ import { formatDistanceToNow } from "date-fns";
 
 const NotificationsPage = () => {
 	const { data: authUser } = useQuery({ queryKey: ["authUser"] });
-
 	const queryClient = useQueryClient();
 
 	const { data: notifications, isLoading } = useQuery({
@@ -34,12 +33,11 @@ const NotificationsPage = () => {
 	const renderNotificationIcon = (type) => {
 		switch (type) {
 			case "like":
-				return <ThumbsUp className='text-blue-500' />;
-
+				return <ThumbsUp className='text-blue-500' size={16} />;
 			case "comment":
-				return <MessageSquare className='text-green-500' />;
+				return <MessageSquare className='text-green-500' size={16} />;
 			case "connectionAccepted":
-				return <UserPlus className='text-purple-500' />;
+				return <UserPlus className='text-purple-500' size={16} />;
 			default:
 				return null;
 		}
@@ -49,13 +47,13 @@ const NotificationsPage = () => {
 		switch (notification.type) {
 			case "like":
 				return (
-					<span>
+					<span className="break-words">
 						<strong>{notification.relatedUser.name}</strong> があなたの投稿にいいねしました
 					</span>
 				);
 			case "comment":
 				return (
-					<span>
+					<span className="break-words">
 						<Link to={`/profile/${notification.relatedUser.username}`} className='font-bold'>
 							{notification.relatedUser.name}
 						</Link>{" "}
@@ -64,7 +62,7 @@ const NotificationsPage = () => {
 				);
 			case "connectionAccepted":
 				return (
-					<span>
+					<span className="break-words">
 						<Link to={`/profile/${notification.relatedUser.username}`} className='font-bold'>
 							{notification.relatedUser.name}
 						</Link>{" "}
@@ -82,55 +80,57 @@ const NotificationsPage = () => {
 		return (
 			<Link
 				to={`/post/${relatedPost._id}`}
-				className='mt-2 p-2 bg-gray-50 rounded-md flex items-center space-x-2 hover:bg-gray-100 transition-colors'
+				className='mt-2 p-2 bg-gray-50 rounded-md flex items-center space-x-2 hover:bg-gray-100 transition-colors w-full'
 			>
 				{relatedPost.image && (
-					<img src={relatedPost.image} alt='Post preview' className='w-10 h-10 object-cover rounded' />
+					<img src={relatedPost.image} alt='Post preview' className='w-10 h-10 object-cover rounded flex-shrink-0' />
 				)}
-				<div className='flex-1 overflow-hidden'>
+				<div className='flex-1 min-w-0'>
 					<p className='text-sm text-gray-600 truncate'>{relatedPost.content}</p>
 				</div>
-				<ExternalLink size={14} className='text-gray-400' />
+				<ExternalLink size={14} className='text-gray-400 flex-shrink-0' />
 			</Link>
 		);
 	};
 
 	return (
-		<div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
+		<div className='grid grid-cols-1 lg:grid-cols-4 gap-6 px-4 max-w-7xl mx-auto'>
 			<div className='col-span-1 lg:col-span-1'>
 				<Sidebar user={authUser} />
 			</div>
 			<div className='col-span-1 lg:col-span-3'>
-				<div className='bg-white rounded-lg shadow p-6'>
+				<div className='bg-white rounded-lg shadow p-4 sm:p-6'>
 					<h1 className='text-2xl font-bold mb-6'>通知</h1>
 
 					{isLoading ? (
 						<p>Loading notifications...</p>
 					) : notifications && notifications.data.length > 0 ? (
-						<ul>
+						<ul className='space-y-4'>
 							{notifications.data.map((notification) => (
 								<li
 									key={notification._id}
-									className={`bg-white border rounded-lg p-4 my-4 transition-all hover:shadow-md ${
+									className={`bg-white border rounded-lg p-3 sm:p-4 transition-all hover:shadow-md ${
 										!notification.read ? "border-blue-500" : "border-gray-200"
 									}`}
 								>
-									<div className='flex items-start justify-between'>
-										<div className='flex items-center space-x-4'>
-											<Link to={`/profile/${notification.relatedUser.username}`}>
+									<div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4'>
+										<div className='flex items-start space-x-3'>
+											<Link to={`/profile/${notification.relatedUser.username}`} className="flex-shrink-0">
 												<img
 													src={notification.relatedUser.profilePicture || "/avatar.png"}
 													alt={notification.relatedUser.name}
-													className='w-12 h-12 rounded-full object-cover'
+													className='w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover'
 												/>
 											</Link>
 
-											<div>
-												<div className='flex items-center gap-2'>
-													<div className='p-1 bg-gray-100 rounded-full'>
+											<div className='flex-1 min-w-0'>
+												<div className='flex items-start gap-2'>
+													<div className='p-1 bg-gray-100 rounded-full flex-shrink-0'>
 														{renderNotificationIcon(notification.type)}
 													</div>
-													<p className='text-sm'>{renderNotificationContent(notification)}</p>
+													<div className='flex-1 min-w-0'>
+														{renderNotificationContent(notification)}
+													</div>
 												</div>
 												<p className='text-xs text-gray-500 mt-1'>
 													{formatDistanceToNow(new Date(notification.createdAt), {
@@ -141,7 +141,7 @@ const NotificationsPage = () => {
 											</div>
 										</div>
 
-										<div className='flex gap-2'>
+										<div className='flex gap-2 ml-auto sm:ml-0'>
 											{!notification.read && (
 												<button
 													onClick={() => markAsReadMutation(notification._id)}
@@ -172,4 +172,5 @@ const NotificationsPage = () => {
 		</div>
 	);
 };
+
 export default NotificationsPage;
