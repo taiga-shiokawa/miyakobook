@@ -35,8 +35,8 @@ export const getFeedPosts = async (req, res) => {
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
-        total
-      }
+        total,
+      },
     });
   } catch (error) {
     console.error("投稿の取得に失敗しました: ", error);
@@ -68,8 +68,8 @@ export const getMyPosts = async (req, res) => {
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
-        total
-      }
+        total,
+      },
     });
   } catch (error) {
     console.error("投稿の取得に失敗しました: ", error);
@@ -80,8 +80,8 @@ export const getMyPosts = async (req, res) => {
       pagination: {
         current: 1,
         pages: 0,
-        total: 0
-      }
+        total: 0,
+      },
     });
   }
 };
@@ -111,8 +111,8 @@ export const getUserPosts = async (req, res) => {
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
-        total
-      }
+        total,
+      },
     });
   } catch (error) {
     console.error("投稿の取得に失敗しました: ", error);
@@ -123,8 +123,8 @@ export const getUserPosts = async (req, res) => {
       pagination: {
         current: 1,
         pages: 0,
-        total: 0
-      }
+        total: 0,
+      },
     });
   }
 };
@@ -137,19 +137,40 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ message: "投稿内容を入力してください。" });
     }
 
-    // メンションを抽出 (@username の形式)
-    const mentionMatches = content.match(/@(\w+)/g) || [];
+    // デバッグ: 受け取ったcontent全体を確認
+    console.log('Received content:', content);
+
+    // 正規表現を修正して日本語を含む文字に対応
+    const mentionMatches = content.match(/@([^\s]+)/g) || [];
+    console.log('Raw mention matches:', mentionMatches);
+
+    // @を除去してユーザー名のみを抽出
     const usernames = mentionMatches.map(match => match.substring(1));
-    
-    // メンションされたユーザーのIDを取得
-    const mentionedUsers = await User.find({ username: { $in: usernames } });
+    console.log('Extracted usernames:', usernames);
+
+    // ユーザー検索のクエリを実行
+    const mentionedUsers = await User.find({ 
+      username: { 
+        $in: usernames 
+      } 
+    });
+
+    console.log('Database query result:', {
+      searchedUsernames: usernames,
+      foundUsers: mentionedUsers.map(u => ({ 
+        id: u._id, 
+        username: u.username,
+        name: u.name 
+      }))
+    });
+
     const mentionUserIds = mentionedUsers.map(user => user._id);
 
     // 画像の存在確認
     let imageUrl = null;
     if (image) {
       const imgResult = await cloudinary.uploader.upload(image, {
-        timeout: 60000 // タイムアウトを60秒に設定
+        timeout: 60000, // タイムアウトを60秒に設定
       });
       imageUrl = imgResult.secure_url;
     }
@@ -158,34 +179,61 @@ export const createPost = async (req, res) => {
       author: req.user._id,
       content,
       image: imageUrl,
-      mentions: mentionUserIds
+      mentions: mentionUserIds,
     });
 
     await newPost.save();
 
     // メンション通知を作成
+    // メンション通知を作成
     const notificationPromises = mentionedUsers
-      .filter(user => user._id.toString() !== req.user._id.toString())
-      .map(user => (
-        new Notification({
+      .filter(
+        (user) =>
+          user &&
+          user._id &&
+          req.user._id &&
+          user._id.toString() !== req.user._id.toString()
+      )
+      .map((user) => {
+        console.log(`Creating mention notification for user: ${user.username}`); // デバッグログ
+        return new Notification({
           recipient: user._id,
           type: "mention",
           relatedUser: req.user._id,
-          relatedPost: newPost._id
-        }).save()
-      ));
-
-    if (notificationPromises.length > 0) {
-      await Promise.all(notificationPromises).catch(error => {
-        console.error("メンション通知の作成に失敗:", error);
+          relatedPost: newPost._id,
+        })
+          .save()
+          .catch((error) => {
+            console.error(
+              `Failed to create notification for user ${user.username}:`,
+              error
+            );
+            return null;
+          });
       });
+
+    try {
+      if (notificationPromises.length > 0) {
+        const createdNotifications = await Promise.all(notificationPromises);
+        console.log(
+          `Successfully created ${
+            createdNotifications.filter(Boolean).length
+          } notifications`
+        );
+      }
+    } catch (error) {
+      console.error("メンション通知の作成に失敗:", error);
     }
 
     // 必要なフィールドのみを返す
     const populatedPost = await Post.findById(newPost._id)
-      .select('author content image createdAt')
+      .select("author content image createdAt")
       .populate("author", "name username profilePicture headline")
       .populate("mentions", "name username profilePicture")
+      .populate({
+        path: "mentions",
+        select: "name username profilePicture",
+      })
       .lean();
 
     res.status(201).json(populatedPost);
@@ -195,7 +243,7 @@ export const createPost = async (req, res) => {
   }
 };
 
-export const deletePost  = async (req, res) => {
+export const deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.user._id;
@@ -209,12 +257,16 @@ export const deletePost  = async (req, res) => {
 
     // 自分の投稿 or 管理者であるか確認 todo: 管理者であるケースは未実装
     if (post.author.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "あなたにはこの投稿の削除権限がありません。" });
+      return res
+        .status(403)
+        .json({ message: "あなたにはこの投稿の削除権限がありません。" });
     }
 
     // 投稿画像をcloudinaryから削除
     if (post.image) {
-      await cloudinary.uploader.destroy(post.image.split("/").pop().split(".")[0]);
+      await cloudinary.uploader.destroy(
+        post.image.split("/").pop().split(".")[0]
+      );
     }
 
     await Post.findByIdAndDelete(postId);
@@ -230,8 +282,8 @@ export const getPostById = async (req, res) => {
   try {
     const postId = req.params.id;
     const post = await Post.findById(postId)
-    .populate("author", "name username profilePicture headline")
-    .populate("comments.user", "name username profilePicture headline");
+      .populate("author", "name username profilePicture headline")
+      .populate("comments.user", "name username profilePicture headline");
 
     res.status(200).json(post);
   } catch (error) {
@@ -249,21 +301,21 @@ export const createComment = async (req, res) => {
     // 投稿の更新（アトミック操作を使用）
     const post = await Post.findByIdAndUpdate(
       postId,
-      { 
-        $push: { 
+      {
+        $push: {
           comments: {
             $each: [{ user: req.user._id, content }],
-            $position: 0  // 最新のコメントを先頭に
-          }
-        }
+            $position: 0, // 最新のコメントを先頭に
+          },
+        },
       },
-      { 
+      {
         new: true,
-        select: 'author comments', // 必要なフィールドのみ取得
+        select: "author comments", // 必要なフィールドのみ取得
         populate: {
           path: "author",
-          select: "name email username profilePicture headline"
-        }
+          select: "name email username profilePicture headline",
+        },
       }
     ).lean();
 
@@ -274,7 +326,7 @@ export const createComment = async (req, res) => {
           recipient: post.author,
           type: "comment",
           relatedUser: req.user._id,
-          relatedPost: postId
+          relatedPost: postId,
         }).save(),
         sendCommentNotificationEmail(
           post.author.email,
@@ -282,14 +334,14 @@ export const createComment = async (req, res) => {
           req.user.name,
           `${process.env.CLIENT_URL}/post/${postId}`,
           content
-        ).catch(error => console.error("メール送信エラー:", error))
-      ]).catch(error => console.error("通知処理エラー:", error));
+        ).catch((error) => console.error("メール送信エラー:", error)),
+      ]).catch((error) => console.error("通知処理エラー:", error));
     }
-    
+
     res.status(200).json(post);
   } catch (error) {
     console.error("Error in createComment controller:", error);
-		res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -297,7 +349,7 @@ export const likePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.user._id;
-    
+
     // いいねの更新
     const post = await Post.findOneAndUpdate(
       { _id: postId },
@@ -310,14 +362,14 @@ export const likePost = async (req, res) => {
                 then: {
                   $filter: {
                     input: "$likes",
-                    cond: { $ne: ["$$this", userId] }
-                  }
+                    cond: { $ne: ["$$this", userId] },
+                  },
                 },
-                else: { $concatArrays: ["$likes", [userId]] }
-              }
-            }
-          }
-        }
+                else: { $concatArrays: ["$likes", [userId]] },
+              },
+            },
+          },
+        },
       ],
       { new: true, lean: true }
     );
@@ -328,8 +380,10 @@ export const likePost = async (req, res) => {
         recipient: post.author,
         type: "like",
         relatedUser: userId,
-        relatedPost: postId
-      }).save().catch(error => console.error("通知エラー:", error));
+        relatedPost: postId,
+      })
+        .save()
+        .catch((error) => console.error("通知エラー:", error));
     }
 
     res.status(200).json(post);
