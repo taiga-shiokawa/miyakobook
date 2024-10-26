@@ -26,7 +26,10 @@ export const getSearchUsers = async (req, res) => {
     const { keyword } = req.query;
 
     const searchUserResults = await User.find({
-      username: { $regex: keyword, $options: "i" },
+      $or: [
+        { username: { $regex: keyword, $options: "i" } },
+        { name: { $regex: keyword, $options: "i" } }
+      ]
     });
 
     res.status(200).json(searchUserResults);

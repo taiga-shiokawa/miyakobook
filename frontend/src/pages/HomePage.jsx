@@ -7,6 +7,7 @@ import { Loader, Users } from "lucide-react";
 import RecommendedUser from "../components/RecommendedUser";
 import { Link, useLocation } from "react-router-dom";
 import SearchResult from "../components/SearchResult";
+import toast from "react-hot-toast";
 
 const HomePage = () => {
   const location = useLocation();
@@ -70,11 +71,9 @@ const HomePage = () => {
   // フィルタリング後にログを出力
   // console.log("Recommended User _id:", recommendedUsers?.filter(Boolean)?.map((user) => user._id));
 
-  recommendedUsers?.filter(Boolean).map((user) => (
-    user?._id && <RecommendedUser key={user._id} user={user} />
-  ));
-  
-  
+  recommendedUsers
+    ?.filter(Boolean)
+    .map((user) => user?._id && <RecommendedUser key={user._id} user={user} />);
 
   // 全体のローディング表示
   if (isLoadingPosts && !postsData) {
@@ -129,9 +128,12 @@ const HomePage = () => {
                 ユーザーの読み込みに失敗しました
               </p>
             ) : recommendedUsers?.filter(Boolean).length > 0 ? (
-              recommendedUsers?.filter(Boolean).map((user) => (
-                user?._id && <RecommendedUser key={user._id} user={user} />
-              ))
+              recommendedUsers
+                ?.filter(Boolean)
+                .map(
+                  (user) =>
+                    user?._id && <RecommendedUser key={user._id} user={user} />
+                )
             ) : (
               <p className="text-gray-500 text-sm">
                 現在おすすめのユーザーはいません。
@@ -146,10 +148,12 @@ const HomePage = () => {
   // すべてのページの投稿を結合
   const allPosts =
     postsData?.pages.flatMap((page) =>
-      Array.isArray(page) ? page.filter(Boolean) : page.posts?.filter(Boolean) || []
+      Array.isArray(page)
+        ? page.filter(Boolean)
+        : page.posts?.filter(Boolean) || []
     ) || [];
 
-    console.log("allPosts:", allPosts);
+  console.log("allPosts:", allPosts);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -164,6 +168,31 @@ const HomePage = () => {
           <SearchResult results={searchResults} keyword={searchKeyword} />
         ) : (
           <>
+            {/* 最新の投稿を読み込むボタン */}
+            <button
+              onClick={async () => {
+                const result = await refetchPosts();
+                // 新しい投稿がない場合（前回と同じデータの場合）
+                if (result.data?.pages[0]?.posts?.length === allPosts.length) {
+                  toast.success("全ての投稿を読み込みました");
+                }
+              }}
+              disabled={postsData?.isFetching}
+              className="w-full mb-4 px-4 py-3 bg-white text-[#5fced8] border border-[#5fced8] rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {postsData?.isFetching ? (
+                <>
+                  <Loader className="animate-spin" size={18} />
+                  <span>更新中...</span>
+                </>
+              ) : (
+                <>
+                  <Loader size={18} />
+                  <span>最新の投稿を読み込む</span>
+                </>
+              )}
+            </button>
+
             {allPosts.length > 0 ? (
               <div className="space-y-4">
                 {allPosts?.map((post) => (
