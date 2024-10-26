@@ -3,6 +3,7 @@ import cloudinary from "../lib/cloudinary.js";
 import Notification from "../models/notification.model.js";
 import Post from "../models/post.model.js";
 import dotenv from "dotenv";
+import User from "../models/user.model.js";
 
 dotenv.config();
 
@@ -136,6 +137,14 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ message: "投稿内容を入力してください。" });
     }
 
+    // メンションを抽出 (@username の形式)
+    const mentionMatches = content.match(/@(\w+)/g) || [];
+    const usernames = mentionMatches.map(match => match.substring(1));
+    
+    // メンションされたユーザーのIDを取得
+    const mentionedUsers = await User.find({ username: { $in: usernames } });
+    const mentionUserIds = mentionedUsers.map(user => user._id);
+
     // 画像の存在確認
     let imageUrl = null;
     if (image) {
@@ -148,15 +157,35 @@ export const createPost = async (req, res) => {
     const newPost = new Post({
       author: req.user._id,
       content,
-      image: imageUrl
+      image: imageUrl,
+      mentions: mentionUserIds
     });
 
     await newPost.save();
+
+    // メンション通知を作成
+    const notificationPromises = mentionedUsers
+      .filter(user => user._id.toString() !== req.user._id.toString())
+      .map(user => (
+        new Notification({
+          recipient: user._id,
+          type: "mention",
+          relatedUser: req.user._id,
+          relatedPost: newPost._id
+        }).save()
+      ));
+
+    if (notificationPromises.length > 0) {
+      await Promise.all(notificationPromises).catch(error => {
+        console.error("メンション通知の作成に失敗:", error);
+      });
+    }
 
     // 必要なフィールドのみを返す
     const populatedPost = await Post.findById(newPost._id)
       .select('author content image createdAt')
       .populate("author", "name username profilePicture headline")
+      .populate("mentions", "name username profilePicture")
       .lean();
 
     res.status(201).json(populatedPost);

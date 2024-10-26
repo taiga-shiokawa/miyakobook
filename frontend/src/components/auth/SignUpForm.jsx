@@ -44,7 +44,7 @@ const SignUpForm = () => {
 		<form onSubmit={handleSignUp} className='flex flex-col gap-4'>
 			<input
 				type='text'
-				placeholder='ユーザー名'
+				placeholder='ユーザー名（ローマ字で入力）'
 				value={name}
 				onChange={(e) => setName(e.target.value)}
 				className='input input-bordered w-full'

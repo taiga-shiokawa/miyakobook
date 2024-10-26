@@ -15,6 +15,13 @@ export const signup = async (req, res) => {
       return res.status(400).json( { message: "すべてのフィールドを入力してください。"} );
     }
 
+    // nameのローマ字チェック
+    // 英字（大文字小文字）とスペースのみを許可
+    const nameRegex = /^[A-Za-z\s]+$/;
+    if (!nameRegex.test(name)) {
+      return res.status(400).json({ message: "ユーザー名は英字（ローマ字）で入力してください。" });
+    }
+
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       return res.status(400).json( { message: "このメールアドレスはすでに登録されています。"} );
