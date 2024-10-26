@@ -31,6 +31,9 @@ const ProfilePage = () => {
 			toast.success("プロフィールを更新しました");
 			queryClient.invalidateQueries(["userProfile", username]);
 		},
+    onError: (error) => {
+      toast.error(error.message || "更新に失敗しました");
+    }
 	});
 
 	if (isLoading || isUserProfileLoading) return null;

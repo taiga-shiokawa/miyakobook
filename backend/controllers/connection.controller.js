@@ -54,7 +54,7 @@ export const acceptConnectionRequest = async (req, res) => {
 
 		// check if the req is for the current user
 		if (request.recipient._id.toString() !== userId.toString()) {
-			return res.status(403).json({ message: "このリクセストを受け入れる権限がありません。" });
+			return res.status(403).json({ message: "このリクエストを受け入れる権限がありません。" });
 		}
 
 		if (request.status !== "pending") {

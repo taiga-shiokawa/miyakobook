@@ -97,7 +97,7 @@ const Navbar = () => {
         <div className='flex justify-between items-center py-3'>
           <div className='flex items-center space-x-4'>
             <Link to='/'>
-              <img className='h-10 w-auto rounded' src='miyakobook-image-removebg-preview.png' alt='miyakobook' />
+              <img className='h-10 w-auto rounded' src='https://res.cloudinary.com/dogup1dum/image/upload/v1729907452/miyakobook-image-removebg-preview_z3wlo4.png' alt='miyakobook' />
             </Link>
 
             {/* 検索フォーム - デスクトップ */}

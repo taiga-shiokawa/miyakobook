@@ -64,8 +64,27 @@ export const updateProfile = async (req, res) => {
 
     const updatedData = {};
 
+    // name と username の必須チェック
+    if (req.body.name !== undefined) {
+      if (!req.body.name.trim()) {
+        return res.status(400).json({ 
+          message: "ユーザー名は必須です。" 
+        });
+      }
+      updatedData.name = req.body.name.trim();
+    }
+
+    if (req.body.username !== undefined) {
+      if (!req.body.username.trim()) {
+        return res.status(400).json({ 
+          message: "ニックネームは必須です。" 
+        });
+      }
+      updatedData.username = req.body.username.trim();
+    }
+
     for (const field of allowedFields) {
-      if (req.body[field]) {
+      if (req.body[field] !== undefined) {
         updatedData[field] = req.body[field];
       }
     }

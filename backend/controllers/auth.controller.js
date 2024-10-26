@@ -146,3 +146,5 @@ export const getCurrentUser = async (req, res) => {
     re.status(500).json({ message: "サーバーエラーの可能性あり。"});
   }
 };
+
+// パスワードを忘れた場合

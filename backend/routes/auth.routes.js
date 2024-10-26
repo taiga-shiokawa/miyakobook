@@ -9,4 +9,6 @@ router.post("/logout", logout);
 
 router.get("/me", protectRoute, getCurrentUser);
 
+// パスワードを忘れた場合
+
 export default router;

@@ -6,7 +6,7 @@ const AuthLayout = ({ children }) => {
           <div className='sm:mx-auto sm:w-full sm:max-w-md'>
             <img 
               className='mx-auto h-24 w-auto' 
-              src='miyakobook-image-removebg-preview.png' 
+              src='https://res.cloudinary.com/dogup1dum/image/upload/v1729907452/miyakobook-image-removebg-preview_z3wlo4.png' 
               alt='miyakobook' 
             />
           </div>

@@ -9,7 +9,7 @@ const LoginPage = () => {
         <div className="flex flex-col max-w-md lg:max-w-xl">
           <img 
             className="h-24 w-auto mb-5" 
-            src="miyakobook-image-removebg-preview.png" 
+            src="https://res.cloudinary.com/dogup1dum/image/upload/v1729907452/miyakobook-image-removebg-preview_z3wlo4.png" 
             alt="miyakobook" 
           />
           <h2 className="text-2xl lg:text-3xl font-medium text-gray-900 leading-relaxed">
