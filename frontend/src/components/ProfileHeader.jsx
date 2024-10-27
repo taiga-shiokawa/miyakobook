@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast";
 
 import { Camera, Clock, MapPin, UserCheck, UserPlus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import BannerImageEditor from "./BannerImageEditor";
 
 const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -16,6 +17,29 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
   });
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [showBannerEditor, setShowBannerEditor] = useState(false);
+  const [selectedBannerImage, setSelectedBannerImage] = useState(null);
+
+  // バナー画像の選択処理
+  const handleBannerSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedBannerImage(reader.result);
+        setShowBannerEditor(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  // バナー画像の保存処理
+  const handleBannerSave = (croppedImage) => {
+    setEditedData((prev) => ({
+      ...prev,
+      bannerImg: croppedImage,
+    }));
+    setShowBannerEditor(false);
+  };
 
   // 編集モード開始時にデータを初期化
   const startEditing = () => {
@@ -216,23 +240,61 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
     }
   };
 
-    return (
-      <div className="bg-white shadow rounded-lg mb-6">
-        <div
-          className="relative h-48 rounded-t-lg bg-black bg-center"
-          style={{
-            backgroundImage: `url('${
-              editedData.bannerImg || userData.bannerImg || "/banner.png"
-            }')`,
-          }}
-        >
+  return (
+    <div className="bg-white shadow rounded-lg mb-6">
+      <div
+        className="relative h-48 w-auto rounded-t-lg bg-black bg-center"
+        style={{
+          backgroundImage: `url('${
+            editedData.bannerImg || userData.bannerImg || "/banner.png"
+          }')`,
+          backgroundSize: 'cover',  // または 'contain'
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        
+        {isEditing && (
+          <label className="absolute top-2 right-2 bg-white p-2 rounded-full shadow cursor-pointer hover:bg-gray-100 transition-colors">
+            <Camera size={20} />
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleBannerSelect}
+              accept="image/*"
+            />
+          </label>
+        )}
+      </div>
+
+      {/* バナー編集モーダル */}
+      {showBannerEditor && selectedBannerImage && (
+        <BannerImageEditor
+          image={selectedBannerImage}
+          onSave={handleBannerSave}
+          onCancel={() => setShowBannerEditor(false)}
+        />
+      )}
+
+      <div className="p-4">
+        <div className="relative -mt-20 mb-4">
+          <img
+            className="w-32 h-32 rounded-full mx-auto object-cover"
+            src={
+              editedData.profilePicture ||
+              userData.profilePicture ||
+              "/avatar.png"
+            }
+            alt={userData.name}
+          />
+
           {isEditing && (
-            <label className="absolute top-2 right-2 bg-white p-2 rounded-full shadow cursor-pointer">
+            <label className="absolute bottom-0 right-1/2 transform translate-x-16 bg-white p-2 rounded-full shadow cursor-pointer">
               <Camera size={20} />
               <input
                 type="file"
                 className="hidden"
-                name="bannerImg"
+                name="profilePicture"
                 onChange={handleImageChange}
                 accept="image/*"
               />
@@ -240,130 +302,102 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
           )}
         </div>
 
-        <div className="p-4">
-          <div className="relative -mt-20 mb-4">
-            <img
-              className="w-32 h-32 rounded-full mx-auto object-cover"
-              src={
-                editedData.profilePicture ||
-                userData.profilePicture ||
-                "/avatar.png"
-              }
-              alt={userData.name}
-            />
-
-            {isEditing && (
-              <label className="absolute bottom-0 right-1/2 transform translate-x-16 bg-white p-2 rounded-full shadow cursor-pointer">
-                <Camera size={20} />
+        <div className="text-center mb-4">
+          {isEditing ? (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">@</label>
                 <input
-                  type="file"
-                  className="hidden"
-                  name="profilePicture"
-                  onChange={handleImageChange}
-                  accept="image/*"
+                  type="text"
+                  value={editedData.name ?? userData.name}
+                  onChange={(e) =>
+                    setEditedData({ ...editedData, name: e.target.value })
+                  }
+                  className="text-lg border border-gray-300 rounded-md text-center w-full"
+                  placeholder="ユーザー名"
                 />
-              </label>
-            )}
-          </div>
-
-          <div className="text-center mb-4">
-            {isEditing ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">@</label>
-                  <input
-                    type="text"
-                    value={editedData.name ?? userData.name}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, name: e.target.value })
-                    }
-                    className="text-lg border border-gray-300 rounded-md text-center w-full"
-                    placeholder="ユーザー名"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">
-                    ニックネーム
-                  </label>
-                  <input
-                    type="text"
-                    value={editedData.username ?? userData.username}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, username: e.target.value })
-                    }
-                    className="text-xl font-bold border border-gray-300 rounded-md text-center w-full mb-2"
-                    placeholder="ニックネーム"
-                  />
-                </div>
               </div>
-            ) : (
-              <div className="mb-4">
-                <div className="text-lg text-gray-800">@{userData.name}</div>
-                <h1 className="text-2xl font-bold">{userData.username}</h1>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  ニックネーム
+                </label>
+                <input
+                  type="text"
+                  value={editedData.username ?? userData.username}
+                  onChange={(e) =>
+                    setEditedData({ ...editedData, username: e.target.value })
+                  }
+                  className="text-xl font-bold border border-gray-300 rounded-md text-center w-full mb-2"
+                  placeholder="ニックネーム"
+                />
               </div>
-            )}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <div className="text-lg text-gray-800">@{userData.name}</div>
+              <h1 className="text-2xl font-bold">{userData.username}</h1>
+            </div>
+          )}
 
+          {isEditing ? (
+            <input
+              type="text"
+              value={editedData.headline}
+              onChange={(e) =>
+                setEditedData((prev) => ({
+                  ...prev,
+                  headline: e.target.value,
+                }))
+              }
+              placeholder="例: ひとこと"
+              className="text-gray-600 border border-gray-300 rounded-md text-center w-full"
+            />
+          ) : (
+            <p className="text-gray-600">{userData.headline || ""}</p>
+          )}
+
+          <div className="flex justify-center items-center mt-2">
+            <MapPin size={16} className="text-gray-500 mr-1" />
             {isEditing ? (
               <input
                 type="text"
-                value={editedData.headline}
+                value={editedData.location ?? userData.location}
                 onChange={(e) =>
-                  setEditedData((prev) => ({
-                    ...prev,
-                    headline: e.target.value,
-                  }))
+                  setEditedData({ ...editedData, location: e.target.value })
                 }
-                placeholder="例: ひとこと"
-                className="text-gray-600 border border-gray-300 rounded-md text-center w-full"
+                placeholder="例: 沖縄県宮古島市"
+                className="text-gray-600 border border-gray-300 rounded-md text-center"
               />
             ) : (
-              <p className="text-gray-600">{userData.headline || ""}</p>
+              <span className="text-gray-600">{userData.location}</span>
             )}
-
-            <div className="flex justify-center items-center mt-2">
-              <MapPin size={16} className="text-gray-500 mr-1" />
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedData.location ?? userData.location}
-                  onChange={(e) =>
-                    setEditedData({ ...editedData, location: e.target.value })
-                  }
-                  placeholder="例: 沖縄県宮古島市"
-                  className="text-gray-600 border border-gray-300 rounded-md text-center"
-                />
-              ) : (
-                <span className="text-gray-600">{userData.location}</span>
-              )}
-            </div>
           </div>
-
-          {isOwnProfile ? (
-            isEditing ? (
-              <button
-                className="w-full bg-primary text-white py-2 px-4 rounded-full hover:bg-primary-dark
-							 transition duration-300"
-                onClick={handleSave}
-              >
-                保存
-              </button>
-            ) : (
-              <button
-                onClick={() => startEditing()}
-                className="w-full bg-[#5fced8] text-white py-2 px-4 rounded-full hover:bg-primary-dark
-							 transition duration-300"
-              >
-                プロフィールを編集
-              </button>
-            )
-          ) : (
-            <div className="flex justify-center">
-              {renderConnectionButton()}
-            </div>
-          )}
         </div>
+
+        {isOwnProfile ? (
+          isEditing ? (
+            <button
+              className="w-full bg-primary text-white py-2 px-4 rounded-full hover:bg-primary-dark
+							 transition duration-300"
+              onClick={handleSave}
+            >
+              保存
+            </button>
+          ) : (
+            <button
+              onClick={() => startEditing()}
+              className="w-full bg-[#5fced8] text-white py-2 px-4 rounded-full hover:bg-primary-dark
+							 transition duration-300"
+            >
+              プロフィールを編集
+            </button>
+          )
+        ) : (
+          <div className="flex justify-center">{renderConnectionButton()}</div>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 export default ProfileHeader;
