@@ -11,7 +11,7 @@ const ForgotPasswordPage = () => {
 
   const { mutate: forgotPasswordMutation, isLoading } = useMutation({
     mutationFn: async (data) => {
-      const res = await axiosInstance.post("auth/forgot-password", data);
+      const res = await axiosInstance.post("/auth/forgot-password", data);
       return res.data;
     },
     onSuccess: () => {
