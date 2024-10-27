@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import { sendWelcomeEmail, sendResetPasswordEmail } from "../emails/emailHandlers.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 // キャッシュの導入（ファイルの先頭に追加）
 const authCache = new Map();
@@ -154,17 +155,37 @@ export const getCurrentUser = async (req, res) => {
   }
 };
 
+// パスワードリセットトークンのスキーマ
+const resetTokenSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+  token: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now, expires: 600 } // 10分後に自動削除
+});
+
+const ResetToken = mongoose.model('ResetToken', resetTokenSchema);
+
 // パスワードを忘れた場合
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "ユーサーが見つかりません。"});
+      return res.status(200).json({ message: "パスワードの再設定用のメールを送信しました。"});
     }
+
+    // 既存のリセットトークンを削除
+    await ResetToken.deleteMany({ userId: user._id });
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "10m",
     });
+
+    // トークンをデータベースに保存
+    await ResetToken.create({
+      userId: user._id,
+      token: token
+    });
+
     const resetPasswordUrl = `${process.env.CLIENT_URL}/auth/reset-password?token=${token}`;
 
     await sendResetPasswordEmail(user.email, user.name, resetPasswordUrl);
