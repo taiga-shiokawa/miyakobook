@@ -1,34 +1,53 @@
 import { useState } from "react";
 import AuthLayout from "../components/layout/AuthLayout"
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
 
-  const queryClient = useQueryClient();
-
   const { mutate: forgotPasswordMutation, isLoading } = useMutation({
     mutationFn: async (data) => {
       const res = await axiosInstance.post("/auth/forgot-password", data);
       return res.data;
     },
-    onSuccess: () => {
-      toast.success("メールを送信しました。");
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+    onMutate: async (variables) => {
+      // 楽観的更新は不要だが、状態管理は必要かもしれない
+      console.log("Sending password reset email to:", variables.email);
+    },
+    onSuccess: (data) => {
+      // レスポンスデータをログ出力して確認
+      console.log("Password reset response:", data);
+      toast.success("パスワード再設定用のメールを送信しました。");
+      setEmail(""); // フォームをクリア
     },
     onError: (error) => {
-      console.error("メール送信中にエラー発生: ", error);
-      toast.error(error.response.data.message);
+      console.error("Password reset error:", error);
+      // エラーの詳細情報を表示
+      const errorMessage = error.response?.data?.message || "メールの送信に失敗しました。";
+      toast.error(errorMessage);
     },
+    onSettled: () => {
+      // 処理完了後の共通処理
+      console.log("Password reset request completed");
+    }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    forgotPasswordMutation({ email });
-  }
+    
+    if (!email) {
+      toast.error("メールアドレスを入力してください。");
+      return;
+    }
+  
+    try {
+      await forgotPasswordMutation({ email });
+    } catch (error) {
+      console.error("Submit error:", error);
+    }
+  };
 
   return (
     <AuthLayout>

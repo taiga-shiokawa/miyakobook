@@ -168,9 +168,16 @@ const ResetToken = mongoose.model('ResetToken', resetTokenSchema);
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: "メールアドレスを入力してください。" });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(200).json({ message: "パスワードの再設定用のメールを送信しました。"});
+      return res.status(200).json({ 
+        message: "パスワードの再設定用のメールを送信しました。" 
+      });
     }
 
     // 既存のリセットトークンを削除
@@ -180,18 +187,31 @@ export const forgotPassword = async (req, res) => {
       expiresIn: "10m",
     });
 
-    // トークンをデータベースに保存
-    await ResetToken.create({
-      userId: user._id,
-      token: token
-    });
-
     const resetPasswordUrl = `${process.env.CLIENT_URL}/auth/reset-password?token=${token}`;
 
-    await sendResetPasswordEmail(user.email, user.name, resetPasswordUrl);
-    res.status(200).json({ message: "パスワードの再設定用のメールを送信しました。" });
+    // Promise.allを使用して並行処理
+    await Promise.all([
+      // トークンの保存
+      ResetToken.create({
+        userId: user._id,
+        token: token
+      }),
+      // メール送信
+      sendResetPasswordEmail(user.email, user.name, resetPasswordUrl)
+        .catch(error => {
+          console.error("メール送信エラー:", error);
+          // エラーログを記録するが、処理は継続
+        })
+    ]);
+
+    res.status(200).json({ 
+      message: "パスワードの再設定用のメールを送信しました。" 
+    });
+
   } catch (error) {
-    console.error("メールアドレスの取得に失敗しました: ", error);
-    res.status(500).json({ message: "サーバーエラーの可能性あり。"});
+    console.error("パスワードリセットプロセスでエラー:", error);
+    res.status(500).json({ 
+      message: "パスワードリセットの処理中にエラーが発生しました。" 
+    });
   }
-}
+};

@@ -6,7 +6,7 @@ import { createWelcomeEmailTemplate, createCommentNotificationEmailTemplate, cre
 dotenv.config();
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const IS_TEST = process.env.NODE_ENV === 'test' || RESEND_API_KEY.startsWith('re_test_');
+const IS_TEST = process.env.NODE_ENV === 'test';
 
 export const resend = new Resend(RESEND_API_KEY);
 
@@ -32,22 +32,37 @@ const getTestEmailAddress = (originalEmail) => {
 
 export const sendResetPasswordEmail = async (email, name, resetPasswordUrl) => {
   try {
-
     const response = await resend.emails.send({
       from: `${sender.name} <${sender.email}>`,
-      to: [getTestEmailAddress(email)],
-      subject: "パスワードのリセット",
+      to: [email],
+      subject: "【Miyakobook】アカウント設定のお知らせ",
       html: createResetPasswordEmailTemplate(name, resetPasswordUrl),
-      tags: [{ name: 'category', value: 'Password Reset' }]
+      tags: [{ name: 'category', value: 'password_reset' }]
     });
 
-    console.log(`Forgot password email sent successfully ${IS_TEST ? '(TEST MODE)' : ''}`);
+    console.log('Raw Resend Response:', response);
+
+    if (!response?.data?.id) {  // response.data.id をチェック
+      throw new Error('Failed to get email ID from Resend');
+    }
+
+    // 成功のログ
+    console.log('Email sent successfully:', {
+      id: response.data.id,
+      to: email
+    });
+
     return response;
   } catch (error) {
-    console.error("Failed to send forgot password email:", error);
+    console.error('Email Send Error:', {
+      message: error.message,
+      name: error.name,
+      statusCode: error?.statusCode,
+      details: error?.response?.data
+    });
     throw error;
   }
-}
+};
 
 export const sendWelcomeEmail = async (email, name, profileUrl) => {
   try {

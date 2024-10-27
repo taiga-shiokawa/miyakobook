@@ -98,22 +98,31 @@ export const createCommentNotificationEmailTemplate = (recipientName, commenterN
 </html>
 `;
 
+// 修正後
 export const createResetPasswordEmailTemplate = (name, resetPasswordUrl) => `
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>パスワードリセット</title>
+  <title>パスワードリセット</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;"></body>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(to right, #0077B5, #00A0DC); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">パスワードリセット</h1>
+    <h1 style="color: white; margin: 0; font-size: 28px;">パスワードリセット</h1>
   </div>
   <div style="background-color: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-  <p style="font-size: 18px; color: #0077B5;"><strong>${name}様</strong></p>
-  <div style="text-align: center; margin: 30px 0;">
-    <a href=${resetPasswordUrl} style="background-color: #0077B5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; transition: background-color 0.3s;">コメントを見る</a>
+    <p style="font-size: 18px; color: #0077B5;"><strong>${name}様</strong></p>
+    <p>パスワードリセットのリクエストを受け付けました。以下のボタンをクリックして、新しいパスワードを設定してください。</p>
+    <p style="color: #666; font-size: 14px;">※このリンクの有効期限は10分間です。</p>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${resetPasswordUrl}" style="background-color: #0077B5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; transition: background-color 0.3s;">パスワードを再設定する</a>
+    </div>
+    <p style="color: #666; font-size: 14px; margin-top: 20px;">
+      ※このメールに心当たりがない場合は、無視していただいて構いません。<br>
+      ※リンクの有効期限が切れた場合は、再度パスワードリセットをリクエストしてください。
+    </p>
   </div>
 </body>
+</html>
 `;
