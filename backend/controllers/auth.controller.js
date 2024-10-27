@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import { sendWelcomeEmail } from "../emails/emailHandlers.js";
+import { sendWelcomeEmail, sendResetPasswordEmail } from "../emails/emailHandlers.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -17,7 +17,7 @@ export const signup = async (req, res) => {
 
     // nameのローマ字チェック
     // 英字（大文字小文字）とスペースのみを許可
-    const nameRegex = /^[A-Za-z\s]+$/;
+    const nameRegex = /^[A-Za-z0-9\s_.-]+$/;
     if (!nameRegex.test(name)) {
       return res.status(400).json({ message: "ユーザー名は英字（ローマ字）で入力してください。" });
     }
@@ -155,3 +155,22 @@ export const getCurrentUser = async (req, res) => {
 };
 
 // パスワードを忘れた場合
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "ユーサーが見つかりません。"});
+    }
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "10m",
+    });
+    const resetPasswordUrl = `${process.env.CLIENT_URL}/auth/reset-password?token=${token}`;
+
+    await sendResetPasswordEmail(user.email, user.name, resetPasswordUrl);
+    res.status(200).json({ message: "パスワードの再設定用のメールを送信しました。" });
+  } catch (error) {
+    console.error("メールアドレスの取得に失敗しました: ", error);
+    res.status(500).json({ message: "サーバーエラーの可能性あり。"});
+  }
+}

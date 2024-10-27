@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
-import { createWelcomeEmailTemplate, createCommentNotificationEmailTemplate, createConnectionAcceptedEmailTemplate } from './emailTemplates.js';
+import { createWelcomeEmailTemplate, createCommentNotificationEmailTemplate, createConnectionAcceptedEmailTemplate, createResetPasswordEmailTemplate } from './emailTemplates.js';
 
 
 dotenv.config();
@@ -29,6 +29,25 @@ export const sender = IS_TEST ? TEST_SENDER : PROD_SENDER;
 const getTestEmailAddress = (originalEmail) => {
   return IS_TEST ? 'delivered@resend.dev' : originalEmail;
 };
+
+export const sendResetPasswordEmail = async (email, name, resetPasswordUrl) => {
+  try {
+
+    const response = await resend.emails.send({
+      from: `${sender.name} <${sender.email}>`,
+      to: [getTestEmailAddress(email)],
+      subject: "パスワードのリセット",
+      html: createResetPasswordEmailTemplate(name, resetPasswordUrl),
+      tags: [{ name: 'category', value: 'Password Reset' }]
+    });
+
+    console.log(`Forgot password email sent successfully ${IS_TEST ? '(TEST MODE)' : ''}`);
+    return response;
+  } catch (error) {
+    console.error("Failed to send forgot password email:", error);
+    throw error;
+  }
+}
 
 export const sendWelcomeEmail = async (email, name, profileUrl) => {
   try {

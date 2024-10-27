@@ -97,3 +97,23 @@ export const createCommentNotificationEmailTemplate = (recipientName, commenterN
 </body>
 </html>
 `;
+
+export const createResetPasswordEmailTemplate = (name, resetPasswordUrl) => `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>パスワードリセット</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;"></body>
+  <div style="background: linear-gradient(to right, #0077B5, #00A0DC); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">パスワードリセット</h1>
+  </div>
+  <div style="background-color: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+  <p style="font-size: 18px; color: #0077B5;"><strong>${name}様</strong></p>
+  <div style="text-align: center; margin: 30px 0;">
+    <a href=${resetPasswordUrl} style="background-color: #0077B5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; transition: background-color 0.3s;">コメントを見る</a>
+  </div>
+</body>
+`;

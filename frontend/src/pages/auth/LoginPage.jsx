@@ -21,7 +21,13 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
             <LoginForm />
-            <div className="mt-6">
+              <Link
+                to="/forgot-password"
+                className="text-sm flex justify-center mt-4 font-medium text-blue-500 hover:text-gray-900"
+              >
+                パスワードをお忘れですか？
+              </Link>
+            <div className="mt-5">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300"></div>
