@@ -117,3 +117,17 @@ export const deleteUser = async (req, res) => {
     console.log("ユーザー削除失敗：", error);
   }
 }
+
+// ユーザー数カウント
+export const countUsers = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.status(200).json({ total: count });
+  } catch (error) {
+    console.log("ユーザー数カウント失敗：", error);
+    res.status(500).json({ 
+      message: "サーバーエラーの可能性あり。",
+      total: 0 
+    });
+  }
+}
