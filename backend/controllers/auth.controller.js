@@ -187,7 +187,7 @@ export const forgotPassword = async (req, res) => {
       expiresIn: "10m",
     });
 
-    const resetPasswordUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+    const resetPasswordUrl = process.env.NODE_ENV === "production" ? `${process.env.CLIENT_URL_TEST}/reset-password?token=${token}` : `${process.env.CLIENT_URL_LOCAL}/reset-password?token=${token}`;
 
     // Promise.allを使用して並行処理
     await Promise.all([
