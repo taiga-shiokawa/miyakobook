@@ -80,21 +80,61 @@ export const getMyPosts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
+    const currentUserId = req.user._id.toString();
+    const { userId } = req.query; // プロフィールページから渡されるユーザーID
 
-    // ログインユーザーの投稿のみを取得
-    const total = await Post.countDocuments({ author: req.user._id });
+    // 表示対象のユーザーの投稿を取得
+    const targetUserId = userId || currentUserId;
+    
+    const total = await Post.countDocuments({ author: targetUserId });
 
-    const posts = await Post.find({ author: req.user._id })
+    const posts = await Post.find({ author: targetUserId })
       .populate("author", "name username profilePicture headline")
       .populate("comments.user", "name profilePicture")
+      .populate("mentionedUserIds", "name username")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
+    // 投稿をフィルタリング
+    const processedPosts = posts.map(post => {
+      // 自分の投稿の場合はすべて表示
+      if (post.author._id.toString() === currentUserId) {
+        return {
+          ...post,
+          isHidden: false
+        };
+      }
+
+      // 他人の投稿の場合、シークレット投稿の表示制御
+      if (post.isSecret) {
+        const isMentioned = Array.isArray(post.mentionedUserIds) && 
+          post.mentionedUserIds.some(user => user._id.toString() === currentUserId);
+
+        if (!isMentioned) {
+          return {
+            _id: post._id,
+            author: post.author,
+            createdAt: post.createdAt,
+            isSecret: true,
+            isHidden: true,
+            content: "この投稿は@メンションされたユーザーのみ閲覧できます",
+            likes: [],
+            comments: []
+          };
+        }
+      }
+
+      return {
+        ...post,
+        isHidden: false
+      };
+    });
+
     res.status(200).json({
       success: true,
-      posts,
+      posts: processedPosts,
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
