@@ -3,7 +3,7 @@ import { useState } from "react";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
-import { Loader, MessageCircle, Send, ThumbsUp, Trash2 } from "lucide-react";
+import { Loader, Lock, MessageCircle, Send, ThumbsUp, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 import PostAction from "./PostAction";
@@ -18,6 +18,44 @@ const Post = ({ post: initialPost }) => {
 	const [comments, setComments] = useState(post.comments || []);
 	const isOwner = authUser._id === post.author._id;
 	const isLiked = post.likes.includes(authUser._id);
+
+  // // シークレット投稿の表示権限チェック
+  // const canViewSecret = () => {
+  //   if (!post.isSecret) return true; // 通常の投稿なら表示可能
+  //   if (isOwner) return true; // 投稿者自身なら表示可能
+
+  //   // サーバーから返された mentionedUserIds を使用して確認
+  //   return post.mentionedUserIds?.includes(authUser._id);
+  // };
+
+  // 表示権限がない場合のコンポーネント
+  const SecretPostPlaceholder = () => (
+    <div className="bg-secondary rounded-lg shadow mb-4 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Link to={`/profile/${post?.author?.username}`}>
+            <img
+              src={post.author.profilePicture || "/avatar.png"}
+              alt={post.author.username}
+              className="size-10 rounded-full mr-3"
+            />
+          </Link>
+          <div>
+            <Link to={`/profile/${post?.author?.username}`}>
+              <h3 className="font-semibold">{post.author.username}</h3>
+            </Link>
+            <p className="text-xs text-info">
+              {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center p-8 text-gray-500">
+        <Lock className="mr-2" size={20} />
+        <p>{post.content}</p>
+      </div>
+    </div>
+  );
 
 
 	const { mutate: deletePost, isPending: isDeletingPost } = useMutation({
@@ -109,6 +147,10 @@ const Post = ({ post: initialPost }) => {
 		}
 	};
 
+  if (post.isSecret && post.isHidden) {
+    return <SecretPostPlaceholder />;
+  }
+
 	return (
 		<div className='bg-secondary rounded-lg shadow mb-4'>
 			<div className='p-4'>
@@ -130,6 +172,12 @@ const Post = ({ post: initialPost }) => {
 							<p className='text-xs text-info'>
 								{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
 							</p>
+              {post.isSecret && (
+                  <div className="flex items-center text-xs text-info">
+                    <Lock size={12} className="ml-1" />
+                    <span className="ml-1">シークレット投稿</span>
+                  </div>
+                )}
 						</div>
 					</div>
 					{isOwner && (

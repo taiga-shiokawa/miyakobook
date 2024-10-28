@@ -15,23 +15,54 @@ Post.schema.index({ likes: 1 });
 export const getFeedPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 10; // 1ページあたりの投稿数
+    const limit = 10;
     const skip = (page - 1) * limit;
+    const currentUserId = req.user._id.toString();
 
-    // 投稿の総数を取得
-    const total = await Post.countDocuments();
-
-    // 投稿を取得
+    // すべての投稿を取得
     const posts = await Post.find()
       .populate("author", "name username profilePicture headline")
       .populate("comments.user", "name profilePicture")
+      .populate("mentionedUserIds", "name username")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
+    // 投稿をフィルタリング
+    const processedPosts = posts.map(post => {
+      // シークレット投稿の場合
+      if (post.isSecret) {
+        // 投稿者自身、またはメンションされたユーザーのみが閲覧可能
+        const isAuthor = post.author._id.toString() === currentUserId;
+        const isMentioned = Array.isArray(post.mentionedUserIds) && 
+          post.mentionedUserIds.some(user => user._id.toString() === currentUserId);
+
+        if (!isAuthor && !isMentioned) {
+          return {
+            _id: post._id,
+            author: post.author,
+            createdAt: post.createdAt,
+            isSecret: true,
+            isHidden: true,
+            content: "この投稿は@メンションされたユーザーのみ閲覧できます",
+            likes: [],
+            comments: []
+          };
+        }
+      }
+
+      return {
+        ...post,
+        isHidden: false
+      };
+    });
+
+    // 総投稿数を計算（フィルタリング後）
+    const total = processedPosts.length;
+
     res.status(200).json({
-      posts,
+      posts: processedPosts,
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
@@ -43,7 +74,6 @@ export const getFeedPosts = async (req, res) => {
     res.status(500).json({ message: "サーバーエラーの可能性あり。" });
   }
 };
-
 // 自分の投稿を取得
 export const getMyPosts = async (req, res) => {
   try {
@@ -131,14 +161,21 @@ export const getUserPosts = async (req, res) => {
 
 export const createPost = async (req, res) => {
   try {
-    const { content, image } = req.body;
+    const { content, image, isSecret } = req.body;
 
     if (!content) {
       return res.status(400).json({ message: "投稿内容を入力してください。" });
     }
 
-    // デバッグ: 受け取ったcontent全体を確認
-    console.log('Received content:', content);
+    // シークレット投稿の場合、メンションが必須
+    if (isSecret) {
+      const mentionMatches = content.match(/@([^\s]+)/g);
+      if (!mentionMatches || mentionMatches.length === 0) {
+        return res.status(400).json({ 
+          message: "シークレット投稿には少なくとも1人のメンションが必要です。" 
+        });
+      }
+    }
 
     // 正規表現を修正して日本語を含む文字に対応
     const mentionMatches = content.match(/@([^\s]+)/g) || [];
@@ -155,22 +192,13 @@ export const createPost = async (req, res) => {
       } 
     });
 
-    console.log('Database query result:', {
-      searchedUsernames: usernames,
-      foundUsers: mentionedUsers.map(u => ({ 
-        id: u._id, 
-        username: u.username,
-        name: u.name 
-      }))
-    });
-
     const mentionUserIds = mentionedUsers.map(user => user._id);
 
     // 画像の存在確認
     let imageUrl = null;
     if (image) {
       const imgResult = await cloudinary.uploader.upload(image, {
-        timeout: 60000, // タイムアウトを60秒に設定
+        timeout: 60000,
       });
       imageUrl = imgResult.secure_url;
     }
@@ -180,60 +208,33 @@ export const createPost = async (req, res) => {
       content,
       image: imageUrl,
       mentions: mentionUserIds,
+      isSecret: isSecret || false,
+      mentionedUserIds: mentionUserIds  // ここを確実に設定
     });
 
     await newPost.save();
 
     // メンション通知を作成
-    // メンション通知を作成
     const notificationPromises = mentionedUsers
-      .filter(
-        (user) =>
-          user &&
-          user._id &&
-          req.user._id &&
-          user._id.toString() !== req.user._id.toString()
-      )
-      .map((user) => {
-        console.log(`Creating mention notification for user: ${user.username}`); // デバッグログ
+      .filter(user => user._id.toString() !== req.user._id.toString())
+      .map(user => {
         return new Notification({
           recipient: user._id,
           type: "mention",
           relatedUser: req.user._id,
           relatedPost: newPost._id,
-        })
-          .save()
-          .catch((error) => {
-            console.error(
-              `Failed to create notification for user ${user.username}:`,
-              error
-            );
-            return null;
-          });
+          isSecretPost: isSecret
+        }).save();
       });
 
-    try {
-      if (notificationPromises.length > 0) {
-        const createdNotifications = await Promise.all(notificationPromises);
-        console.log(
-          `Successfully created ${
-            createdNotifications.filter(Boolean).length
-          } notifications`
-        );
-      }
-    } catch (error) {
-      console.error("メンション通知の作成に失敗:", error);
-    }
+    await Promise.allSettled(notificationPromises);
 
     // 必要なフィールドのみを返す
     const populatedPost = await Post.findById(newPost._id)
-      .select("author content image createdAt")
+      .select("author content image createdAt isSecret mentionedUserIds")
       .populate("author", "name username profilePicture headline")
       .populate("mentions", "name username profilePicture")
-      .populate({
-        path: "mentions",
-        select: "name username profilePicture",
-      })
+      .populate("mentionedUserIds", "name username profilePicture")
       .lean();
 
     res.status(201).json(populatedPost);

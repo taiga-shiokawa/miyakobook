@@ -3,6 +3,7 @@ import { useState } from "react";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { Image, Loader } from "lucide-react";
+import ToggleSwitch from "./ToggleSwitch";
 
 const PostCreation = ({ user }) => {
   const [content, setContent] = useState("");
@@ -11,6 +12,7 @@ const PostCreation = ({ user }) => {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState("");
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [isSecret, setIsSecret] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -81,8 +83,17 @@ const PostCreation = ({ user }) => {
 
   const handlePostCreation = async () => {
     try {
-      const postData = { content };
-      if (image) postData.image = await readFileAsDataURL(image);
+      // @メンションされているユーザーのIDを抽出
+      const mentionedUsers = content
+      .match(/@(\w+)/g)
+      ?.map(mention => mention.slice(1).toLowerCase()) || [];
+
+    const postData = { 
+      content,
+      isSecret,
+      mentionedUserIds: mentionedUsers  // メンションされたユーザーのIDを保存
+    };
+  if (image) postData.image = await readFileAsDataURL(image);
       createPostMutation(postData);
     } catch (error) {
       console.error("handlePostCreationでエラー発生: ", error);
@@ -186,6 +197,12 @@ const PostCreation = ({ user }) => {
               onChange={handleImageChange}
             />
           </label>
+
+          <ToggleSwitch
+            checked={isSecret}
+            onChange={() => setIsSecret(!isSecret)}
+            label="シークレット投稿"
+          />
         </div>
 
         <button
