@@ -187,7 +187,7 @@ export const forgotPassword = async (req, res) => {
       expiresIn: "10m",
     });
 
-    const resetPasswordUrl = `${process.env.CLIENT_URL}/auth/reset-password?token=${token}`;
+    const resetPasswordUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
 
     // Promise.allを使用して並行処理
     await Promise.all([
@@ -213,5 +213,54 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ 
       message: "パスワードリセットの処理中にエラーが発生しました。" 
     });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const token = req.query.token;
+    const { newPassword } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "トークンが提供されていません" });
+    }
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    // データベースに保存されているトークンを確認
+    const resetToken = await ResetToken.findOne({ 
+      userId: decodedToken.userId,
+      token: token 
+    });
+
+    if (!resetToken) {
+      return res.status(400).json({ 
+        message: "無効または期限切れのトークンです。" 
+      });
+    }
+
+    const user = await User.findById(decodedToken.userId);
+    if (!user) {
+      return res.status(400).json({ 
+        message: "ユーザーが見つかりません。" 
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    await ResetToken.deleteOne({ _id: resetToken._id });
+
+    res.status(200).json({
+      message: "パスワードをリセットしました。"
+    });
+
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(400).json({ message: "トークンの有効期限が切れています。" });
+    }
+    console.error("パスワードのリセットに失敗しました: ", error);
+    res.status(500).json({ message: "パスワードリセットの処理中にエラーが発生しました。" });
   }
 };

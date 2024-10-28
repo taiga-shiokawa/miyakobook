@@ -16,6 +16,7 @@ import CompanyInfoPage from "./pages/CompanyInfoPage"
 import JobInfoPage from "./pages/JobInfoPage"
 import UserCountPage from "./pages/UserCountPage"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
+import ResetPasswordPage from "./pages/ResetPasswordPage"
 
 function App() {
 
@@ -51,6 +52,7 @@ function App() {
       <Route path="/company-info" element={authUser ? <CompanyInfoPage /> : <Navigate to="/login" />} />
       <Route path="/job-posting" element={authUser ? <JobInfoPage /> : <Navigate to="/login" />} />
       <Route path="/forgot-password" element={ <ForgotPasswordPage /> } />
+      <Route path="/reset-password" element={ <ResetPasswordPage /> } />
       <Route path="/user-count" element={ <UserCountPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
