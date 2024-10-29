@@ -19,7 +19,10 @@ export const getFeedPosts = async (req, res) => {
     const skip = (page - 1) * limit;
     const currentUserId = req.user._id.toString();
 
-    // すべての投稿を取得
+    // 全体の投稿数を先に取得
+    const totalPosts = await Post.countDocuments();
+
+    // 投稿を取得
     const posts = await Post.find()
       .populate("author", "name username profilePicture headline")
       .populate("comments.user", "name profilePicture")
@@ -33,7 +36,6 @@ export const getFeedPosts = async (req, res) => {
     const processedPosts = posts.map(post => {
       // シークレット投稿の場合
       if (post.isSecret) {
-        // 投稿者自身、またはメンションされたユーザーのみが閲覧可能
         const isAuthor = post.author._id.toString() === currentUserId;
         const isMentioned = Array.isArray(post.mentionedUserIds) && 
           post.mentionedUserIds.some(user => user._id.toString() === currentUserId);
@@ -58,15 +60,21 @@ export const getFeedPosts = async (req, res) => {
       };
     });
 
-    // 総投稿数を計算（フィルタリング後）
-    const total = processedPosts.length;
+    // デバッグログ
+    console.log({
+      totalPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+      postsInCurrentPage: processedPosts.length
+    });
 
     res.status(200).json({
       posts: processedPosts,
       pagination: {
         current: page,
-        pages: Math.ceil(total / limit),
-        total,
+        pages: Math.ceil(totalPosts / limit), // 全体の投稿数から計算
+        total: totalPosts,
+        hasMore: page < Math.ceil(totalPosts / limit)
       },
     });
   } catch (error) {

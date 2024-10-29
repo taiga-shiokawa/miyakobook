@@ -5,7 +5,7 @@ import Post from "./Post";
 import { useEffect } from "react";
 import { Loader } from "lucide-react";
 
-const MyPostSection = ({ userId, isOwnProfile }) => {
+const MyPostSection = ({ userId }) => {
   const { ref, inView } = useInView();
 
   const {
