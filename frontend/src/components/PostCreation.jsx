@@ -131,7 +131,7 @@ const PostCreation = ({ user }) => {
         <img
           src={user.profilePicture || "/avatar.png"}
           alt={user.name}
-          className="size-12 rounded-full"
+          className="w-12 h-12 rounded-full mx-auto object-cover"
         />
         <div className="relative flex-1">
           <textarea
@@ -180,13 +180,13 @@ const PostCreation = ({ user }) => {
         </div>
       )}
 
-      <div className="flex justify-between items-center mt-4">
-        <div className="flex space-x-4">
+      <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+        <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full">
           <label className="flex items-center text-info hover:text-info-dark transition-colors duration-200 cursor-pointer">
             <Image size={20} className="mr-2" />
-            <span>
-              画像{" "}
-              <span className="text-xs text-gray-500">
+            <span className="text-sm sm:text-base">
+              画像
+              <span className="text-xs text-gray-500 block sm:inline sm:ml-1">
                 ※動画は投稿できません
               </span>
             </span>
@@ -198,15 +198,17 @@ const PostCreation = ({ user }) => {
             />
           </label>
 
-          <ToggleSwitch
-            checked={isSecret}
-            onChange={() => setIsSecret(!isSecret)}
-            label="シークレット投稿"
-          />
+          <div className="w-full sm:w-auto">
+            <ToggleSwitch
+              checked={isSecret}
+              onChange={() => setIsSecret(!isSecret)}
+              label="シークレット投稿"
+            />
+          </div>
         </div>
 
         <button
-          className="py-2 px-4 bg-[#5fced8] hover:bg-[#4db9c3] text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-[#5fced8] focus:ring-opacity-75 transition-colors duration-200"
+          className="w-full sm:w-auto py-2 px-4 bg-[#5fced8] hover:bg-[#4db9c3] text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-[#5fced8] focus:ring-opacity-75 transition-colors duration-200 whitespace-nowrap"
           onClick={handlePostCreation}
           disabled={isPending}
         >

@@ -5,22 +5,24 @@ export default function Sidebar({ user }) {
   return (
     <div className='bg-secondary rounded-lg shadow'>
 			<div className='p-4 text-center'>
-				<div
-					className='h-16 rounded-t-lg bg-black bg-center'
-					style={{
-						backgroundImage: `url("${user.bannerImg || "banner.png"}")`,
-					}}
-				/>
-				<Link to={`/profile/${user.username}`}>
-					<img
-						src={user.profilePicture || "/avatar.png"}
-						alt={user.username}
-						className='w-20 h-20 rounded-full mx-auto mt-[-40px]'
-					/>
-					<h2 className='text-xl font-semibold mt-2'>{user.username}</h2>
-				</Link>
-				<p className='text-info'>{user.headline}</p>
-				<p className='text-info text-xs'>コネクション {user.connections.length}</p>
+				{/* バナー画像のサイズを調整 */}
+        <div
+          className='h-12 rounded-t-lg bg-black bg-center bg-cover bg-no-repeat'
+          style={{
+            backgroundImage: `url("${user.bannerImg || "banner.png"}")`,
+          }}
+        />
+        <Link to={`/profile/${user.username}`}>
+          {/* プロフィール画像のサイズを調整 */}
+          <img
+            src={user.profilePicture || "/avatar.png"}
+            alt={user.username}
+            className='w-16 h-16 rounded-full mx-auto mt-[-24px] object-cover border-2 border-white'
+          />
+          <h2 className='text-sm font-semibold mt-2'>{user.username}</h2>
+        </Link>
+        <p className='text-info text-xs'>{user.headline}</p>
+        <p className='text-info text-xs'>コネクション {user.connections.length}</p>
 			</div>
 			<div className='border-t border-base-100 p-4'>
 				<nav>
