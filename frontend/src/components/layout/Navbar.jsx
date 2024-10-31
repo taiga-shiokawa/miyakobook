@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../../lib/axios";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Home, LogOut, Search, User, Users, Menu, X } from "lucide-react";
+import { Bell, Home, LogOut, Search, User, Users, Menu, X, Newspaper } from "lucide-react";
 import { BsBriefcase } from 'react-icons/bs';
 import { useState } from "react";
 
@@ -68,6 +68,10 @@ const Navbar = () => {
         <BsBriefcase size={20} />
         <span className='text-xs md:block'>求人</span>
       </Link>
+      <Link to='/news' className='text-neutral flex flex-col items-center relative' onClick={() => setIsMenuOpen(false)}>
+        <Newspaper size={20} />
+        <span className='text-xs md:block'>ニュース</span>
+      </Link>
       <Link to='/notifications' className='text-neutral flex flex-col items-center relative' onClick={() => setIsMenuOpen(false)}>
         <Bell size={20} />
         <span className='text-xs md:block'>通知</span>
@@ -126,14 +130,28 @@ const Navbar = () => {
             {authUser ? (
               <NavLinks />
             ) : (
-              <>
-                <Link to='/login' className='btn btn-ghost'>
+              <div className="flex items-center gap-4">
+                <Link 
+                  to='/news' 
+                  className='flex flex-col items-center gap-1 text-gray-700 hover:text-primary transition-colors duration-200'
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Newspaper className="w-5 h-5" />
+                  <span className='text-xs'>ニュース</span>
+                </Link>
+                <Link 
+                  to='/login' 
+                  className='text-gray-700 hover:text-primary font-medium transition-colors duration-200'
+                >
                   ログイン
                 </Link>
-                <Link to='/signup' className="w-full py-2 px-3 bg-[#5fced8] hover:bg-[#4db9c3] text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-[#5fced8] focus:ring-opacity-75 transition-colors duration-200">
+                <Link 
+                  to='/signup' 
+                  className="py-2 px-4 bg-[#5fced8] hover:bg-primary-dark text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all duration-200"
+                >
                   アカウント作成
                 </Link>
-              </>
+              </div>
             )}
           </div>
 

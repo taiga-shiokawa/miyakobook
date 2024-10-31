@@ -13,6 +13,7 @@ import notificationRoutes from './routes/notification.routes.js';
 import connectionRoutes from './routes/connection.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import jobRoutes from './routes/job.routes.js';
+import newsRoutes from './routes/news.routes.js';
 import { connectDB } from './lib/db.js';
 
 // 環境変数使用
@@ -41,6 +42,7 @@ app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/connections", connectionRoutes);
 app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/jobs", jobRoutes);
+app.use("/api/v1/news", newsRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist"), {

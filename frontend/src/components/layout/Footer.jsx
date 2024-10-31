@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 const Footer = () => {
   return (
     <footer className="w-full bg-base-100 shadow-md border-t">
@@ -11,26 +13,17 @@ const Footer = () => {
           </div>
 
           {/* リンク */}
-          {/* <div className="flex items-center space-x-6">
-            <a 
-              href="/terms" 
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
+          <div className="flex items-center space-x-6">
+            <Link to="/term">
               利用規約
-            </a>
-            <a 
-              href="/privacy" 
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
+            </Link>
+            <Link to="/privacy">
               プライバシーポリシー
-            </a>
-            <a 
-              href="/contact" 
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
+            </Link>
+            <a href="https://forms.gle/v4NhAnFrQKPkvy5i8" target="_blank" rel="noopener noreferrer" className="target_bla">
               お問い合わせ
             </a>
-          </div> */}
+          </div>
         </div>
       </div>
     </footer>

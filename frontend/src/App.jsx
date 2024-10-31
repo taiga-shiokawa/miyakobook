@@ -17,6 +17,10 @@ import JobInfoPage from "./pages/JobInfoPage"
 import UserCountPage from "./pages/UserCountPage"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
+import NewsPage from "./pages/NewsPage"
+import NewsDetailPage from "./pages/NewsDetailPage"
+import TermPage from "./pages/termPage"
+import PrivacyPage from "./pages/privacyPage"
 
 function App() {
 
@@ -47,12 +51,16 @@ function App() {
       <Route path="/notifications" element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />
       <Route path="/network" element={authUser ? <NetworkPage /> : <Navigate to="/login" />} />
       <Route path="/jobs" element={authUser ? <JobPage /> : <Navigate to="/login" />} />
+      <Route path="/news" element={<NewsPage />} />
+      <Route path="/news/:newsId" element={<NewsDetailPage />} />
       <Route path="/post/:postId" element={authUser ? <PostPage /> : <Navigate to="/login" />} />
       <Route path="/profile/:username" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
       <Route path="/company-info" element={authUser ? <CompanyInfoPage /> : <Navigate to="/login" />} />
       <Route path="/job-posting" element={authUser ? <JobInfoPage /> : <Navigate to="/login" />} />
       <Route path="/forgot-password" element={ <ForgotPasswordPage /> } />
       <Route path="/reset-password" element={ <ResetPasswordPage /> } />
+      <Route path="/term" element={ <TermPage /> } />
+      <Route path="/privacy" element={ <PrivacyPage /> } />
       <Route path="/user-count" element={ <UserCountPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
