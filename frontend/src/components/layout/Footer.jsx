@@ -13,14 +13,19 @@ const Footer = () => {
           </div>
 
           {/* リンク */}
-          <div className="flex items-center space-x-6">
-            <Link to="/term">
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 text-sm text-gray-600">
+            <Link to="/term" className="hover:text-gray-900 transition-colors">
               利用規約
             </Link>
-            <Link to="/privacy">
+            <Link to="/privacy" className="hover:text-gray-900 transition-colors">
               プライバシーポリシー
             </Link>
-            <a href="https://forms.gle/v4NhAnFrQKPkvy5i8" target="_blank" rel="noopener noreferrer" className="target_bla">
+            <a 
+              href="https://forms.gle/v4NhAnFrQKPkvy5i8" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-gray-900 transition-colors"
+            >
               お問い合わせ
             </a>
           </div>
