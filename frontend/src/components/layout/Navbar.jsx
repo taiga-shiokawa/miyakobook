@@ -193,6 +193,13 @@ const Navbar = () => {
           )}
           {!authUser && (
             <div className="px-4 py-3 space-y-2">
+              <Link 
+                to='/news' 
+                className='flex flex-col items-center gap-1 text-gray-700 hover:text-primary transition-colors duration-200'
+                onClick={() => setIsMenuOpen(false)}
+              >
+                ニュース
+              </Link>
               <Link to='/login' className="block text-center py-2 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-md">
                 ログイン
               </Link>
