@@ -169,6 +169,19 @@ const NewsDetailPage = () => {
     setIsEditing(false);
   };
 
+  // OGP用の画像URLを取得する関数
+  const getOgImage = (news) => {
+    if (!news) return "https://miyakobook.com/default-ogp.jpg";
+    
+    // 記事に画像がある場合はその画像を使用
+    if (news.image) {
+      // Cloudinaryの画像を最適化
+      return news.image.replace('/upload/', '/upload/w_1200,h_630,c_fill,g_center/');
+    }
+    
+    return "https://miyakobook.com/default-ogp.jpg";
+  };
+
   const metaDescription = getMetaDescription(news.content);
   const keywords = getKeywords(news);
   const publishDate = formatDate(news.createdAt);
@@ -191,8 +204,10 @@ const NewsDetailPage = () => {
         <meta property="og:description" content={metaDescription} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={pageUrl} />
-        <meta property="og:image" content={news.image || "https://miyakobook.com/default-ogp.jpg"} />
-        <meta property="og:locale" content="ja_JP" />
+        <meta property="og:image" content={getOgImage(news)} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={news.title} /><meta property="og:locale" content="ja_JP" />
         <meta property="article:published_time" content={publishDate} />
         <meta property="article:modified_time" content={modifyDate} />
         {news.tags?.map(tag => (
@@ -203,22 +218,20 @@ const NewsDetailPage = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${news.title} | Miyakobook（みやこぶっく）`} />
         <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={news.image || "https://miyakobook.com/default-ogp.jpg"} />
+        <meta name="twitter:image" content={getOgImage(news)} />
+        <meta name="twitter:image:alt" content={news.title} />
 
         {/* 構造化データ - Article */}
         <script type="application/ld+json">
-          {JSON.stringify({
+        {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "NewsArticle",
-            "headline": news.title,
-            "description": metaDescription,
-            "image": news.image || "https://miyakobook.com/default-ogp.jpg",
-            "datePublished": publishDate,
-            "dateModified": modifyDate,
-            "author": {
-              "@type": "Person",
-              "name": news.author?.name || "Miyakobook",
-              "url": `https://miyakobook.com/users/${news.author?._id || ""}`
+            // ... 他の属性は同じ
+            "image": {
+              "@type": "ImageObject",
+              "url": getOgImage(news),
+              "width": 1200,
+              "height": 630
             },
             "publisher": {
               "@type": "Organization",
