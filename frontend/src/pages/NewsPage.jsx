@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { Newspaper, Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import NewsCard from "../components/NewsCard";
+import { Helmet } from "react-helmet-async";
 
 const NewsPage = () => {
   const queryClient = useQueryClient();
@@ -111,6 +112,71 @@ const NewsPage = () => {
   }
 
   return (
+    <>
+   <Helmet>
+        {/* 一覧ページ用のメタデータ */}
+        <title>ニュース一覧 - Miyakobook</title>
+        <meta 
+          name="description" 
+          content="Miyakobookの最新ニュース一覧です。新着情報やお知らせをご覧いただけます。" 
+        />
+        
+        {/* OGP タグ */}
+        <meta 
+          property="og:title" 
+          content="ニュース一覧 - Miyakobook" 
+        />
+        <meta 
+          property="og:description" 
+          content="Miyakobookの最新ニュース一覧です。新着情報やお知らせをご覧いただけます。" 
+        />
+        <meta property="og:type" content="website" /> {/* articleからwebsiteに変更 */}
+        <meta 
+          property="og:url" 
+          content="https://miyakobook.com/news" 
+        />
+        <meta 
+          property="og:image" 
+          content="https://miyakobook.com/default-ogp.jpg" 
+        />
+        
+        {/* Twitter Card タグ */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta 
+          name="twitter:title" 
+          content="ニュース一覧 - Miyakobook" 
+        />
+        <meta 
+          name="twitter:description" 
+          content="Miyakobookの最新ニュース一覧です。新着情報やお知らせをご覧いただけます。" 
+        />
+        <meta 
+          name="twitter:image" 
+          content="https://miyakobook.com/default-ogp.jpg" 
+        />
+
+        {/* 一覧ページ用の構造化データ */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "headline": "ニュース一覧 - Miyakobook",
+            "description": "Miyakobookの最新ニュース一覧です。新着情報やお知らせをご覧いただけます。",
+            "publisher": {
+              "@type": "Organization",
+              "name": "Miyakobook",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://miyakobook.com/logo.png"
+              }
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": "https://miyakobook.com/news"
+            }
+          })}
+        </script>
+      </Helmet>
     <div className="p-6 max-w-7xl mx-auto">
       <div
         className={`grid grid-cols-1 ${
@@ -272,6 +338,7 @@ const NewsPage = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

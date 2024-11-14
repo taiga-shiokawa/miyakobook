@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { axiosInstance } from "../lib/axios";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Edit, Loader } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 const NewsDetailPage = () => {
   const { newsId } = useParams();
@@ -103,7 +104,12 @@ const NewsDetailPage = () => {
 
   if (!news) {
     return (
+      
       <div className="max-w-4xl mx-auto p-6">
+        <Helmet>
+          <title>記事が見つかりません - Miyakobook</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900">
             ニュースが見つかりません
@@ -141,7 +147,75 @@ const NewsDetailPage = () => {
     setIsEditing(false);
   };
 
+  const description = news.content?.substring(0, 160) || "";
+
+  // 投稿日時のフォーマット
+  const publishDate = news.createdAt ? new Date(news.createdAt).toISOString() : "";
+  const modifyDate = news.updatedAt ? new Date(news.updatedAt).toISOString() : publishDate;
+
   return (
+    <>
+    <Helmet>
+        {/* 基本的なメタタグ */}
+        <title>{`${news.title} - Miyakobook`}</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={`https://miyakobook.com/news/${newsId}`} />
+
+        {/* OGP タグ */}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={news.title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={`https://miyakobook.com/news/${newsId}`} />
+        <meta property="og:image" content={news.image || "https://miyakobook.com/default-ogp.jpg"} />
+        <meta property="article:published_time" content={publishDate} />
+        <meta property="article:modified_time" content={modifyDate} />
+        {news.tags?.map((tag) => (
+          <meta property="article:tag" content={tag} key={tag} />
+        ))}
+
+        {/* Twitter Card タグ */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={news.title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={news.image || "https://miyakobook.com/default-ogp.jpg"} />
+
+        {/* 構造化データ */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            "headline": news.title,
+            "description": description,
+            "image": news.image || "https://miyakobook.com/default-ogp.jpg",
+            "datePublished": publishDate,
+            "dateModified": modifyDate,
+            "author": {
+              "@type": "Person",
+              "name": news.author?.name || "Miyakobook",
+              "url": `https://miyakobook.com/users/${news.author?._id || ""}`
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Miyakobook",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://miyakobook.com/logo.png"
+              }
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": `https://miyakobook.com/news/${newsId}`
+            },
+            "keywords": news.tags?.join(", "),
+            "articleSection": "News",
+            "interactionStatistic": {
+              "@type": "InteractionCounter",
+              "interactionType": "https://schema.org/ReadAction",
+              "userInteractionCount": news.views || 0
+            }
+          })}
+        </script>
+      </Helmet>
     <div className="max-w-4xl mx-auto p-6 relative">
       {/* 管理者用編集ボタン */}
       {authUser?.userType === "admin" && (
@@ -279,6 +353,7 @@ const NewsDetailPage = () => {
         </div>
       </article>
     </div>
+    </>
   );
 };
 
