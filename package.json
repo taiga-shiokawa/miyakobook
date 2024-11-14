@@ -4,6 +4,7 @@
   "description": "",
   "main": "backend/server.js",
   "scripts": {
+    "generate-sitemap": "node scripts/generate-sitemap.js",
     "dev": "nodemon backend/server.js",
     "start": "node backend/server.js",
     "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
@@ -28,6 +29,7 @@
     "jsonwebtoken": "^9.0.2",
     "mailtrap": "^3.4.0",
     "mongoose": "^8.7.1",
+    "node-cron": "^3.0.3",
     "react-cropper": "^2.3.3",
     "resend": "^4.0.0"
   },

@@ -94,6 +94,28 @@ const NewsDetailPage = () => {
     }
   }, [newsId, hasIncrementedView, authUser]);
 
+  // 記事の本文から最初の160文字を抽出してメタ説明文として使用
+  const getMetaDescription = (content) => {
+    return content
+      ?.replace(/\n/g, ' ')  // 改行を空白に変換
+      ?.substring(0, 160)
+      ?.trim() || '';
+  };
+
+  // キーワードを抽出（タグと記事内の重要な単語を組み合わせる）
+  const getKeywords = (news) => {
+    const baseKeywords = ['Miyakobook', 'みやこぶっく', '宮古島'];
+    const tagKeywords = news?.tags || [];
+    const titleKeywords = news?.title?.split(/[\s,、。　]+/) || [];
+    return [...new Set([...baseKeywords, ...tagKeywords, ...titleKeywords])].join(', ');
+  };
+
+  // 投稿日時のフォーマット
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toISOString();
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -108,7 +130,7 @@ const NewsDetailPage = () => {
       <div className="max-w-4xl mx-auto p-6">
         <Helmet>
           <title>記事が見つかりません - Miyakobook</title>
-          <meta name="robots" content="noindex" />
+          <meta name="robots" content="noindex, nofollow" />
         </Helmet>
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900">
@@ -147,45 +169,49 @@ const NewsDetailPage = () => {
     setIsEditing(false);
   };
 
-  const description = news.content?.substring(0, 160) || "";
-
-  // 投稿日時のフォーマット
-  const publishDate = news.createdAt ? new Date(news.createdAt).toISOString() : "";
-  const modifyDate = news.updatedAt ? new Date(news.updatedAt).toISOString() : publishDate;
-
+  const metaDescription = getMetaDescription(news.content);
+  const keywords = getKeywords(news);
+  const publishDate = formatDate(news.createdAt);
+  const modifyDate = formatDate(news.updatedAt);
+  const pageUrl = `https://miyakobook.com/news/${newsId}`;
   return (
     <>
     <Helmet>
         {/* 基本的なメタタグ */}
-        <title>{`${news.title} - Miyakobook`}</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={`https://miyakobook.com/news/${newsId}`} />
+        <title>{`${news.title} | Miyakobookの新着ニュース`}</title>
+        <meta name="description" content={metaDescription} />
+        <meta name="keywords" content={keywords} />
+        <link rel="canonical" href={pageUrl} />
+        <meta name="author" content={news.author?.name || "Miyakobook"} />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
 
         {/* OGP タグ */}
+        <meta property="og:site_name" content="Miyakobook（みやこぶっく）" />
+        <meta property="og:title" content={`${news.title} | Miyakobook（みやこぶっく）`} />
+        <meta property="og:description" content={metaDescription} />
         <meta property="og:type" content="article" />
-        <meta property="og:title" content={news.title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={`https://miyakobook.com/news/${newsId}`} />
+        <meta property="og:url" content={pageUrl} />
         <meta property="og:image" content={news.image || "https://miyakobook.com/default-ogp.jpg"} />
+        <meta property="og:locale" content="ja_JP" />
         <meta property="article:published_time" content={publishDate} />
         <meta property="article:modified_time" content={modifyDate} />
-        {news.tags?.map((tag) => (
+        {news.tags?.map(tag => (
           <meta property="article:tag" content={tag} key={tag} />
         ))}
 
-        {/* Twitter Card タグ */}
+        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={news.title} />
-        <meta name="twitter:description" content={description} />
+        <meta name="twitter:title" content={`${news.title} | Miyakobook（みやこぶっく）`} />
+        <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={news.image || "https://miyakobook.com/default-ogp.jpg"} />
 
-        {/* 構造化データ */}
+        {/* 構造化データ - Article */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "NewsArticle",
             "headline": news.title,
-            "description": description,
+            "description": metaDescription,
             "image": news.image || "https://miyakobook.com/default-ogp.jpg",
             "datePublished": publishDate,
             "dateModified": modifyDate,
@@ -204,15 +230,49 @@ const NewsDetailPage = () => {
             },
             "mainEntityOfPage": {
               "@type": "WebPage",
-              "@id": `https://miyakobook.com/news/${newsId}`
+              "@id": pageUrl
             },
-            "keywords": news.tags?.join(", "),
+            "keywords": keywords,
             "articleSection": "News",
+            "inLanguage": "ja",
+            "isAccessibleForFree": "True",
             "interactionStatistic": {
               "@type": "InteractionCounter",
               "interactionType": "https://schema.org/ReadAction",
               "userInteractionCount": news.views || 0
+            },
+            "locationCreated": {
+              "@type": "Place",
+              "name": "宮古島"
             }
+          })}
+        </script>
+
+        {/* 構造化データ - BreadcrumbList */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Miyakobook",
+                "item": "https://miyakobook.com"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "ニュース",
+                "item": "https://miyakobook.com/news"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": news.title,
+                "item": pageUrl
+              }
+            ]
           })}
         </script>
       </Helmet>

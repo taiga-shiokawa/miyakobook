@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import express, { json } from 'express';
 import cors from 'cors';
+import cron from 'node-cron';
 import path from 'path';
 
 // ローカルモジュール
@@ -15,6 +16,7 @@ import searchRoutes from './routes/search.routes.js';
 import jobRoutes from './routes/job.routes.js';
 import newsRoutes from './routes/news.routes.js';
 import { connectDB } from './lib/db.js';
+import { generateSitemap } from './utils/sitemapGenerator.js';
 
 // 環境変数使用
 dotenv.config();
@@ -43,6 +45,15 @@ app.use("/api/v1/connections", connectionRoutes);
 app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/news", newsRoutes);
+
+cron.schedule('0 0 * * *', async () => {
+  try {
+    await generateSitemap();
+    console.log('サイトマップが自動生成されました');
+  } catch (error) {
+    console.error('サイトマップの自動生成に失敗:', error);
+  }
+});
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist"), {

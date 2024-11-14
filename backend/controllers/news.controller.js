@@ -5,6 +5,7 @@ import ViewLog from '../models/view.log.model.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { generateSitemap } from '../utils/sitemapGenerator.js';
 
 dotenv.config();
 
@@ -131,6 +132,7 @@ export const postNews = async (req, res) => {
     });
 
     await newNews.save();
+    await generateSitemap();
 
     const savedNews = await News.findById(newNews._id)
       .populate('author', 'name username profilePicture')

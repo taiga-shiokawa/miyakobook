@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- トップページ -->
+  <url>
+    <loc>https://miyakobook.com</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- ニュース一覧ページ -->
+  <url>
+    <loc>https://miyakobook.com/news</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://miyakobook.com/news/67249ded79fbea7304599250</loc>
+    <lastmod>2024-11-14T02:27:00.880Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://miyakobook.com/news/6724c990148298602d5404cb</loc>
+    <lastmod>2024-11-14T02:09:37.468Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://miyakobook.com/news/6735520b8780c157c66d7162</loc>
+    <lastmod>2024-11-14T02:12:27.806Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
