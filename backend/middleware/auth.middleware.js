@@ -22,7 +22,7 @@ export const protectRoute = async (req, res, next) => {
     
     next();
   } catch (error) {
-    console.log("protectRouteミドルウェアでエラーが発生。", error.message);
+    console.log("protectRouteミドルウェアでエラーが発生。", error.message, error.stack);
     res.status(500).json({ message: "サーバーエラーの可能性あり。"});
   }
 }
