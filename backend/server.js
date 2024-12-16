@@ -34,7 +34,7 @@ if (process.env.NODE_ENV !== "production") {
     );
 }
 
-app.use(express.json({ limit: "5mb" })); // JSON形式のリクエストを受け取れるようにする
+app.use(express.json({ limit: "50mb" })); // JSON形式のリクエストを受け取れるようにする
 app.use(cookieParser()); // cookieを受け取れるようにする
 
 app.use("/api/v1/auth", authRoutes);
