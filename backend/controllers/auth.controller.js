@@ -86,13 +86,20 @@ export const login = async (req, res) => {
     // キャッシュをチェック
     if (authCache.has(username)) {
       const cachedToken = authCache.get(username);
-      res.cookie("jwt-business-sns-token", cachedToken, {
-        httpOnly: true,
-        maxAge: 3 * 24 * 60 * 60 * 1000,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-      });
-      return res.json({ message: "ログインに成功しました。" });
+      try {
+        // キャッシュされたトークンの有効性を確認
+        jwt.verify(cachedToken, process.env.JWT_SECRET);
+        res.cookie("jwt-business-sns-token", cachedToken, {
+          httpOnly: true,
+          maxAge: 3 * 24 * 60 * 60 * 1000,
+          sameSite: "strict",
+          secure: process.env.NODE_ENV === "production",
+        });
+        return res.json({ message: "ログインに成功しました。" });
+      } catch (error) {
+        // トークンが無効な場合はキャッシュから削除
+        authCache.delete(username);
+      }
     }
 
     // ユーザーの存在確認
